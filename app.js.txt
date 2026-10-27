@@ -1,0 +1,367 @@
+
+(function () {
+  'use strict';
+  var KEY = 'tabbed-slides-v1';
+  var THEMES = {
+    green: { header: '#183d33', accent: '#1f6b52', paper: '#fffdf6', ink: '#20332e', pptHeader: '183D33', pptAccent: '1F6B52', pptPaper: 'FFFDF6', pptInk: '20332E' },
+    ink:   { header: '#1b2a41', accent: '#3a6ea5', paper: '#ffffff', ink: '#1b2a41', pptHeader: '1B2A41', pptAccent: '3A6EA5', pptPaper: 'FFFFFF', pptInk: '1B2A41' },
+    sand:  { header: '#5a4a2f', accent: '#b08d57', paper: '#faf6ec', ink: '#3b3024', pptHeader: '5A4A2F', pptAccent: 'B08D57', pptPaper: 'FAF6EC', pptInk: '3B3024' }
+  };
+  var state = null, presStep = 0, presIndex = 0, notesOn = false, saveTimer = null;
+
+  function $(id) { return document.getElementById(id); }
+  function uid() { return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(36).slice(2)); }
+  function newSlide(title) { return { id: uid(), title: title || 'New slide', points: [], notes: '', image: null, chart: null }; }
+  function newDeck(title) { return { id: uid(), title: title || 'New presentation', theme: 'green', slides: [newSlide()], current: 0 }; }
+  function deck() { return state.decks.find(function (d) { return d.id === state.activeId; }) || state.decks[0]; }
+  function slide() { var d = deck(); return d.slides[d.current] || d.slides[0]; }
+  function clamp(d) { d.current = Math.max(0, Math.min(d.slides.length - 1, d.current)); }
+  function theme(d) { return THEMES[d.theme] || THEMES.green; }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
+  function isSlide(s) {
+    return s && typeof s.id === 'string' && typeof s.title === 'string' && Array.isArray(s.points) &&
+      s.points.every(function (p) { return typeof p === 'string'; }) &&
+      (s.notes === undefined || typeof s.notes === 'string') &&
+      (s.image === undefined || s.image === null || (typeof s.image === 'string' && s.image.indexOf('data:image/') === 0)) &&
+      (s.chart === undefined || s.chart === null || (s.chart && (s.chart.type === 'bar' || s.chart.type === 'line') && Array.isArray(s.chart.data)));
+  }
+  function isDeck(d) { return d && typeof d.id === 'string' && typeof d.title === 'string' && Array.isArray(d.slides) && d.slides.length > 0 && d.slides.every(isSlide); }
+  function valid(s) { return s && s.version === 1 && Array.isArray(s.decks) && s.decks.length > 0 && s.decks.every(isDeck) && typeof s.activeId === 'string'; }
+  function readStore() {
+    try { var raw = localStorage.getItem(KEY); if (raw) { var s = JSON.parse(raw); if (valid(s)) return s; } } catch (e) {}
+    return null;
+  }
+  function setStatus(text, isError) { var el = $('autosave'); el.textContent = text; el.className = 'status' + (isError ? ' error' : ''); }
+  function writeStore() {
+    try {
+      localStorage.setItem(KEY, JSON.stringify({ version: 1, activeId: state.activeId, decks: state.decks }));
+      setStatus('Saved in this browser · ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' }), false);
+    } catch (e) { setStatus('Could not save in this browser (storage full?). Use Save file.', true); }
+  }
+  function queueSave() { setStatus('Saving…', false); clearTimeout(saveTimer); saveTimer = setTimeout(writeStore, 400); }
+
+  /* Chart and slide markup, shared by the editor, Present, print and HTML export */
+  function chartRows(chart) {
+    return (chart && chart.data ? chart.data : []).filter(function (r) { return r && typeof r.label === 'string' && isFinite(r.value); });
+  }
+  function svgChart(chart, t) {
+    var rows = chartRows(chart);
+    if (!rows.length) return '';
+    var W = 600, H = 320, L = 52, R = 20, T = 16, B = 56;
+    var max = Math.max.apply(null, rows.map(function (r) { return r.value; }).concat([0]));
+    var min = Math.min.apply(null, rows.map(function (r) { return r.value; }).concat([0]));
+    var span = (max - min) || 1, n = rows.length, cw = (W - L - R) / n;
+    function y(v) { return T + (H - T - B) * (1 - (v - min) / span); }
+    var out = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Chart" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,sans-serif">';
+    out += '<line x1="' + L + '" y1="' + y(0) + '" x2="' + (W - R) + '" y2="' + y(0) + '" stroke="#8a9a92"/>';
+    if (chart.type === 'line') {
+      var pts = rows.map(function (r, i) { return (L + cw * i + cw / 2).toFixed(1) + ',' + y(r.value).toFixed(1); });
+      out += '<polyline points="' + pts.join(' ') + '" fill="none" stroke="' + t.accent + '" stroke-width="3"/>';
+      rows.forEach(function (r, i) { out += '<circle cx="' + (L + cw * i + cw / 2).toFixed(1) + '" cy="' + y(r.value).toFixed(1) + '" r="5" fill="' + t.accent + '"/>'; });
+    } else {
+      rows.forEach(function (r, i) {
+        var top = Math.min(y(r.value), y(0)), h = Math.abs(y(r.value) - y(0));
+        out += '<rect x="' + (L + cw * i + cw * 0.18).toFixed(1) + '" y="' + top.toFixed(1) + '" width="' + (cw * 0.64).toFixed(1) + '" height="' + h.toFixed(1) + '" fill="' + t.accent + '"/>';
+      });
+    }
+    rows.forEach(function (r, i) {
+      out += '<text x="' + (L + cw * i + cw / 2).toFixed(1) + '" y="' + (H - 30) + '" text-anchor="middle" font-size="14" fill="#20332e">' + esc(r.label) + '</text>';
+      out += '<text x="' + (L + cw * i + cw / 2).toFixed(1) + '" y="' + (y(r.value) - 8).toFixed(1) + '" text-anchor="middle" font-size="13" fill="#20332e">' + esc(String(r.value)) + '</text>';
+    });
+    return out + '</svg>';
+  }
+  /* step: null shows every point; a number shows that many (others keep their place but are hidden) */
+  function slideHTML(s, d, step) {
+    var t = theme(d), style = '--header:' + t.header + ';--accent:' + t.accent + ';--paper:' + t.paper + ';--ink:' + t.ink;
+    var items = s.points.map(function (p, i) {
+      var hidden = step !== null && step !== undefined && i >= step;
+      return '<li' + (hidden ? ' class="hidden-step"' : '') + '>' + esc(p) + '</li>';
+    }).join('');
+    var list = s.points.length ? '<ul>' + items + '</ul>' : '<ul><li class="ghost" style="list-style:none">Points appear here</li></ul>';
+    var side = '';
+    if (s.image && s.image.indexOf('data:image/') === 0) side += '<img src="' + s.image + '" alt="">';
+    var rows = chartRows(s.chart);
+    if (rows.length) side += svgChart(s.chart, t);
+    var body = side ? '<div class="cols"><div class="text">' + list + '</div><div class="side">' + side + '</div></div>' : '<div class="cols"><div class="text">' + list + '</div></div>';
+    return '<div class="sl" style="' + style + '"><h2>' + esc(s.title || 'Untitled slide') + '</h2>' + body + '</div>';
+  }
+
+  /* Tabs and editor */
+  function renderTabs() {
+    var bar = $('tabs'); bar.replaceChildren();
+    state.decks.forEach(function (d) {
+      var wrap = document.createElement('div');
+      wrap.className = 'tab-wrap' + (d.id === state.activeId ? ' active' : '');
+      var tab = document.createElement('button');
+      tab.type = 'button'; tab.setAttribute('role', 'tab'); tab.setAttribute('aria-selected', String(d.id === state.activeId));
+      tab.textContent = d.title || 'Untitled'; tab.title = d.title;
+      tab.onclick = function () { state.activeId = d.id; render(); queueSave(); };
+      var close = document.createElement('button');
+      close.type = 'button'; close.className = 'close'; close.textContent = '×'; close.setAttribute('aria-label', 'Close ' + d.title);
+      close.onclick = function () { closeDeck(d.id); };
+      wrap.append(tab, close); bar.append(wrap);
+    });
+    var add = document.createElement('div'); add.className = 'tab-wrap tab-add';
+    var plus = document.createElement('button'); plus.type = 'button'; plus.textContent = '+'; plus.title = 'New deck'; plus.setAttribute('aria-label', 'New deck');
+    plus.onclick = newDeckAction; add.append(plus); bar.append(add);
+  }
+  function renderSlides() {
+    var list = $('slidelist'), d = deck(); list.replaceChildren();
+    d.slides.forEach(function (s, i) {
+      var li = document.createElement('li'), b = document.createElement('button');
+      b.type = 'button'; b.className = 'slide-item' + (i === d.current ? ' current' : ''); b.setAttribute('aria-current', i === d.current ? 'true' : 'false');
+      var num = document.createElement('span'); num.className = 'num'; num.textContent = 'Slide ' + (i + 1);
+      var name = document.createElement('span'); name.className = 'name'; name.textContent = s.title || 'Untitled';
+      b.append(num, name);
+      b.onclick = function () { d.current = i; render(); queueSave(); };
+      li.append(b); list.append(li);
+    });
+    $('upslide').disabled = d.current === 0;
+    $('downslide').disabled = d.current === d.slides.length - 1;
+    $('delslide').disabled = d.slides.length === 1;
+  }
+  function renderStage() { var d = deck(); $('stage').innerHTML = slideHTML(slide(), d, null); }
+  function renderEditor() {
+    var s = slide(), d = deck();
+    function put(id, v) { if (document.activeElement !== $(id)) $(id).value = v; }
+    put('stitle', s.title); put('spoints', s.points.join('\n')); put('snotes', s.notes || ''); put('dtitle', d.title);
+    put('theme', d.theme || 'green');
+    $('chartkind').value = s.chart ? s.chart.type : 'none';
+    if (document.activeElement !== $('chartdata')) $('chartdata').value = s.chart ? chartRows(s.chart).map(function (r) { return r.label + ', ' + r.value; }).join('\n') : '';
+    $('chartbox').hidden = !s.chart;
+    $('delpic').disabled = !s.image;
+    $('dinfo').textContent = 'Slide ' + (d.current + 1) + ' of ' + d.slides.length + '. ' + state.decks.length + (state.decks.length === 1 ? ' deck open.' : ' decks open.');
+    $('deckcount').textContent = state.decks.length + (state.decks.length === 1 ? ' deck' : ' decks');
+  }
+  function render() { clamp(deck()); renderTabs(); renderSlides(); renderEditor(); renderStage(); }
+  function newDeckAction() { var d = newDeck('New presentation'); state.decks.push(d); state.activeId = d.id; render(); writeStore(); $('stitle').focus(); }
+  function closeDeck(id) {
+    var d = state.decks.find(function (x) { return x.id === id; }); if (!d) return;
+    if (!confirm('Close “' + d.title + '” and delete its draft from this browser?')) return;
+    state.decks = state.decks.filter(function (x) { return x.id !== id; });
+    if (!state.decks.length) state.decks.push(newDeck());
+    if (state.activeId === id) state.activeId = state.decks[0].id;
+    render(); writeStore();
+  }
+
+  $('stitle').addEventListener('input', function () { slide().title = $('stitle').value; renderSlides(); renderTabs(); renderStage(); queueSave(); });
+  $('spoints').addEventListener('input', function () {
+    slide().points = $('spoints').value.split('\n').map(function (x) { return x.replace(/\s+$/, ''); }).filter(function (x) { return x.trim() !== ''; });
+    renderStage(); queueSave();
+  });
+  $('snotes').addEventListener('input', function () { slide().notes = $('snotes').value; queueSave(); });
+  $('dtitle').addEventListener('input', function () { deck().title = $('dtitle').value.trim() ? $('dtitle').value : 'Untitled'; renderTabs(); queueSave(); });
+  $('theme').addEventListener('change', function () { deck().theme = $('theme').value; renderStage(); queueSave(); });
+  $('chartkind').addEventListener('change', function () {
+    var s = slide(), kind = $('chartkind').value;
+    if (kind === 'none') s.chart = null;
+    else s.chart = { type: kind, data: s.chart ? s.chart.data : [] };
+    renderEditor(); renderStage(); queueSave();
+  });
+  $('chartdata').addEventListener('input', function () {
+    var s = slide(); if (!s.chart) return;
+    var rows = $('chartdata').value.split('\n').map(function (line) {
+      var k = line.lastIndexOf(','); if (k < 0) return null;
+      var label = line.slice(0, k).trim(), value = Number(line.slice(k + 1).trim().replace(',', '.'));
+      return label && isFinite(value) ? { label: label, value: value } : null;
+    }).filter(Boolean);
+    s.chart.data = rows; renderStage(); queueSave();
+  });
+
+  $('addslide').onclick = function () { var d = deck(); d.slides.splice(d.current + 1, 0, newSlide()); d.current += 1; render(); queueSave(); $('stitle').focus(); };
+  $('dupslide').onclick = function () { var d = deck(), copy = JSON.parse(JSON.stringify(slide())); copy.id = uid(); d.slides.splice(d.current + 1, 0, copy); d.current += 1; render(); queueSave(); };
+  $('delslide').onclick = function () {
+    var d = deck(); if (d.slides.length === 1) return;
+    if (!confirm('Delete this slide?')) return;
+    d.slides.splice(d.current, 1); clamp(d); render(); queueSave();
+  };
+  function move(delta) { var d = deck(), to = d.current + delta; if (to < 0 || to >= d.slides.length) return; var tmp = d.slides[d.current]; d.slides[d.current] = d.slides[to]; d.slides[to] = tmp; d.current = to; render(); queueSave(); }
+  $('upslide').onclick = function () { move(-1); };
+  $('downslide').onclick = function () { move(1); };
+  $('newdeck').onclick = newDeckAction;
+
+  /* Pictures: resized in the browser so the saved file stays small */
+  $('addpic').onclick = function () { $('imgin').value = ''; $('imgin').click(); };
+  $('delpic').onclick = function () { slide().image = null; renderEditor(); renderStage(); queueSave(); };
+  $('imgin').onchange = function () {
+    var f = $('imgin').files[0]; if (!f) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      var img = new Image();
+      img.onload = function () {
+        var max = 1600, k = Math.min(1, max / Math.max(img.width, img.height));
+        var c = document.createElement('canvas');
+        c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+        var g = c.getContext('2d'); g.fillStyle = '#ffffff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, 0, 0, c.width, c.height);
+        var url = c.toDataURL('image/jpeg', 0.85);
+        if (url.length > 900000) url = c.toDataURL('image/jpeg', 0.7);
+        slide().image = url; renderEditor(); renderStage(); queueSave();
+      };
+      img.onerror = function () { setStatus('This picture could not be read.', true); };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(f);
+  };
+
+  /* Files */
+  function download(name, data, type) {
+    var blob = data instanceof Blob ? data : new Blob([data], { type: type });
+    var url = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href = url; a.download = name; document.body.append(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 1000);
+  }
+  function safeName(t) { return (t || 'presentation').replace(/[<>:"/\\|?*\u0000-\u001f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80) || 'presentation'; }
+  $('savedeck').onclick = function () { var d = deck(); download(safeName(d.title) + '.tabbed-slides.json', JSON.stringify({ version: 1, deck: d }, null, 2), 'application/json;charset=utf-8'); setStatus('File saved to your downloads', false); };
+  $('opendeck').onclick = function () { $('filein').value = ''; $('filein').click(); };
+  $('filein').onchange = function () {
+    var f = $('filein').files[0]; if (!f) return;
+    f.text().then(function (text) {
+      var data = JSON.parse(text), d = data && data.deck;
+      if (!isDeck(d)) throw new Error('This file is not a Tabbed Slides deck.');
+      d.id = uid(); d.current = 0; d.theme = d.theme || 'green';
+      state.decks.push(d); state.activeId = d.id; render(); writeStore();
+    }).catch(function (e) { setStatus('Could not open the file: ' + (e.message || 'unknown error'), true); alert('Could not open the file. ' + (e.message || '')); });
+  };
+
+  /* HTML export: one file, with the same reveal keys */
+  function htmlDeck(d) {
+    var sections = d.slides.map(function (s, i) {
+      return '<section class="slide" data-n="' + (i + 1) + '" data-points="' + s.points.length + '">' + slideHTML(s, d, null).replace('<div class="sl" ', '<div class="sl" ') + '</section>';
+    }).join('\n');
+    var t = theme(d);
+    return '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>' + esc(d.title) + '</title>\n<style>\n' +
+      'html,body{margin:0;height:100%;background:#0f2a22;font-family:"Literata",Georgia,serif}\n' +
+      '.slide{display:none;position:fixed;inset:0;margin:auto;width:min(96vw,calc(92vh*16/9));height:min(92vh,calc(96vw*9/16))}\n' +
+      '.slide.on{display:block}\n' +
+      '.sl{width:100%;height:100%;padding:5% 6%;box-sizing:border-box;background:var(--paper);color:var(--ink);border-top:14px solid var(--accent);display:flex;flex-direction:column;overflow:hidden}\n' +
+      '.sl h2{margin:0 0 4%;font-size:clamp(22px,4vw,56px);line-height:1.2;color:var(--header)}\n' +
+      '.sl .cols{display:flex;gap:4%;flex:1;min-height:0}.sl .text{flex:1 1 0;min-width:0}.sl .side{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:3%}\n' +
+      '.sl ul{font-size:clamp(16px,2.6vw,34px);line-height:1.5;padding-left:1.2em;margin:0}.sl li{margin-bottom:.35em}\n' +
+      '.sl li.hidden-step{visibility:hidden}.sl img{max-width:100%;max-height:100%;object-fit:contain;margin:0 auto;display:block}.sl svg{width:100%;height:auto}\n' +
+      '.bar{position:fixed;bottom:10px;left:0;right:0;text-align:center;color:#cfe3da;font:14px system-ui,sans-serif}\n' +
+      '.credit{position:fixed;top:8px;left:12px;color:#cfe3da;font:12px system-ui,sans-serif}\n' +
+      '</style>\n</head>\n<body>\n' + sections + '\n<div class="bar" id="bar"></div>\n<p class="credit">Made with Tabbed Slides (alpha) · Made by The Last Byzantine, MMXXVI. Sharing is love!</p>\n' +
+      '<script>\n(function(){var s=[].slice.call(document.querySelectorAll(".slide")),i=0,step=0;\n' +
+      'function show(n,st){i=Math.max(0,Math.min(s.length-1,n));step=st;s.forEach(function(x,k){x.classList.toggle("on",k===i);});\n' +
+      'var lis=[].slice.call(s[i].querySelectorAll("li")),pts=lis.filter(function(li){return !li.classList.contains("ghost")});\n' +
+      'pts.forEach(function(li,j){li.classList.toggle("hidden-step",j>=step)});\n' +
+      'document.getElementById("bar").textContent=(i+1)+" / "+s.length+"  ·  Space or arrows to move"}\n' +
+      'function count(k){return s[k].querySelectorAll("li:not(.ghost)").length}\n' +
+      'function next(){if(step<count(i))show(i,step+1);else if(i<s.length-1)show(i+1,0)}\n' +
+      'function prev(){if(step>0)show(i,step-1);else if(i>0)show(i-1,count(i-1))}\n' +
+      'document.addEventListener("keydown",function(e){if(e.key==="ArrowRight"||e.key===" "||e.key==="PageDown"){e.preventDefault();next()}else if(e.key==="ArrowLeft"||e.key==="PageUp"){e.preventDefault();prev()}});\n' +
+      'document.addEventListener("click",function(e){if(e.clientX>window.innerWidth/2)next();else prev()});\n' +
+      'show(0,0)})();\n<\/script>\n</body>\n</html>\n';
+  }
+  $('exporthtml').onclick = function () { var d = deck(); download(safeName(d.title) + '.html', htmlDeck(d), 'text/html;charset=utf-8'); setStatus('HTML file saved to your downloads', false); };
+
+  /* PowerPoint export (PptxGenJS, MIT licence, bundled in vendor/) */
+  $('exportppt').onclick = function () {
+    var d = deck(), t = theme(d);
+    if (typeof window.PptxGenJS !== 'function') { alert('The PowerPoint library did not load. Check your connection once, then try again.'); return; }
+    setStatus('Building the PowerPoint file…', false);
+    try {
+      var pptx = new window.PptxGenJS();
+      pptx.layout = 'LAYOUT_WIDE';
+      pptx.title = d.title;
+      d.slides.forEach(function (s) {
+        var sl = pptx.addSlide();
+        sl.background = { color: t.pptPaper };
+        sl.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 13.33, h: 0.18, fill: { color: t.pptAccent }, line: { color: t.pptAccent } });
+        sl.addText(s.title || 'Untitled slide', { x: 0.6, y: 0.35, w: 12.1, h: 1.0, fontFace: 'Georgia', fontSize: 30, bold: true, color: t.pptHeader, valign: 'middle' });
+        var rows = chartRows(s.chart), hasImage = !!(s.image && s.image.indexOf('data:image/') === 0), hasChart = rows.length > 0;
+        var textW = (hasImage || hasChart) ? 6.4 : 12.1;
+        if (s.points.length) {
+          sl.addText(s.points.map(function (p) { return { text: p, options: { bullet: true, breakLine: true } }; }),
+            { x: 0.6, y: 1.6, w: textW, h: 5.3, fontFace: 'Georgia', fontSize: 20, color: t.pptInk, valign: 'top', paraSpaceAfter: 8 });
+        }
+        var sideH = (hasImage && hasChart) ? 2.6 : 5.2, y = 1.6;
+        if (hasImage) { sl.addImage({ data: s.image, x: 7.4, y: y, w: 5.3, h: sideH, sizing: { type: 'contain', w: 5.3, h: sideH } }); y += sideH + 0.1; }
+        if (hasChart) {
+          sl.addChart(s.chart.type === 'line' ? pptx.ChartType.line : pptx.ChartType.bar,
+            [{ name: s.title || 'Values', labels: rows.map(function (r) { return r.label; }), values: rows.map(function (r) { return r.value; }) }],
+            { x: 7.4, y: y, w: 5.3, h: sideH, chartColors: [t.pptAccent], showLegend: false, showValue: true, dataLabelFontSize: 11, catAxisLabelFontSize: 11, valAxisLabelFontSize: 10 });
+        }
+        if (s.notes) sl.addNotes(s.notes);
+      });
+      pptx.writeFile({ fileName: safeName(d.title) + '.pptx' }).then(function () {
+        setStatus('PowerPoint file saved to your downloads', false);
+      }).catch(function (e) { setStatus('PowerPoint export failed: ' + (e.message || 'unknown error'), true); });
+    } catch (e) { setStatus('PowerPoint export failed: ' + (e.message || 'unknown error'), true); }
+  };
+
+  /* Print: one slide per landscape page */
+  $('printdeck').onclick = function () {
+    var d = deck(), area = $('printarea');
+    area.innerHTML = d.slides.map(function (s) { return slideHTML(s, d, null); }).join('');
+    window.print();
+  };
+
+  /* Present with reveal and notes */
+  function showPresent() {
+    presIndex = deck().current; presStep = 0; notesOn = false;
+    drawPresent();
+    $('present').classList.add('on');
+    document.body.style.overflow = 'hidden';
+    try { if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(function () {}); } catch (e) {}
+  }
+  function drawPresent() {
+    var d = deck();
+    presIndex = Math.max(0, Math.min(d.slides.length - 1, presIndex));
+    var s = d.slides[presIndex], n = s.points.length;
+    presStep = Math.max(0, Math.min(n, presStep));
+    $('pslide').innerHTML = slideHTML(s, d, presStep);
+    $('pbar').textContent = (presIndex + 1) + ' / ' + d.slides.length + (n ? '  ·  point ' + presStep + ' of ' + n : '');
+    $('pnotes').hidden = !notesOn;
+    $('pnotes').textContent = s.notes || 'No speaker notes for this slide.';
+  }
+  function nextPresent() {
+    var n = deck().slides[presIndex].points.length;
+    if (presStep < n) presStep++;
+    else if (presIndex < deck().slides.length - 1) { presIndex++; presStep = 0; }
+    drawPresent();
+  }
+  function prevPresent() {
+    if (presStep > 0) presStep--;
+    else if (presIndex > 0) { presIndex--; presStep = deck().slides[presIndex].points.length; }
+    drawPresent();
+  }
+  function closePresent() {
+    $('present').classList.remove('on'); document.body.style.overflow = '';
+    try { if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(function () {}); } catch (e) {}
+    deck().current = presIndex; render();
+  }
+  $('presentbtn').onclick = showPresent;
+  $('pclose').onclick = closePresent;
+  $('pprev').onclick = prevPresent;
+  $('pnext').onclick = nextPresent;
+  document.addEventListener('keydown', function (e) {
+    if (!$('present').classList.contains('on')) return;
+    if (e.key === 'Escape') closePresent();
+    else if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); nextPresent(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prevPresent(); }
+    else if (e.key === 'n' || e.key === 'N') { notesOn = !notesOn; drawPresent(); }
+  });
+
+  $('discardall').onclick = function () {
+    var n = state.decks.length;
+    if (!confirm('Discard all ' + n + (n === 1 ? ' deck' : ' decks') + ' and their drafts in this browser? Files you saved are not changed.')) return;
+    state.decks = [newDeck()]; state.activeId = state.decks[0].id; render(); writeStore();
+  };
+
+  state = readStore() || (function () {
+    var d = newDeck('Welcome deck');
+    d.slides = [
+      { id: uid(), title: 'Tabbed Slides', points: ['Slides in your browser', 'One tab per deck', 'Points appear one by one in Present'], notes: 'Say hello and explain the alpha status.', image: null, chart: null },
+      { id: uid(), title: 'Sales by year', points: ['Growth in the last three years'], notes: '', image: null, chart: { type: 'bar', data: [{ label: '2023', value: 120 }, { label: '2024', value: 145 }, { label: '2025', value: 160 }] } }
+    ];
+    return { version: 1, activeId: d.id, decks: [d] };
+  })();
+  if (!state.decks.some(function (d) { return d.id === state.activeId; })) state.activeId = state.decks[0].id;
+  state.decks.forEach(function (d) { d.theme = d.theme || 'green'; });
+  render();
+  if (!readStore()) writeStore();
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(function () {}); } catch (e) {}
+  if ('serviceWorker' in navigator) window.addEventListener('load', function () { navigator.serviceWorker.register('./sw.js').catch(function () {}); });
+})();

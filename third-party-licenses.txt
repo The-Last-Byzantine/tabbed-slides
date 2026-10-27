@@ -1,0 +1,9 @@
+Third-party software and fonts used by Tabbed Slides
+
+Literata (fonts/, screen font)
+Literata by TypeTogether, Copyright 2018 The Literata Project Authors, licensed under the SIL Open Font License 1.1.
+Source: https://github.com/googlefonts/literata (packaged by Fontsource, https://fontsource.org)
+
+PptxGenJS 3.12.0 (vendor/pptxgen.bundle.js)
+Copyright (c) Brent Ely and contributors. Licensed under the MIT License.
+Source: https://github.com/gitbrent/PptxGenJS
