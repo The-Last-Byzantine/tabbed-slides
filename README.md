@@ -1,5 +1,7 @@
 # Tabbed Slides
 
+Live version: https://tabbedslides.pages.dev/
+
 A browser-based slides editor with tabs, built as a companion to Tabbed Word. Everything runs on your device;
 files are never uploaded.
 
