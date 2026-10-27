@@ -7,3 +7,5 @@ Source: https://github.com/googlefonts/literata (packaged by Fontsource, https:/
 PptxGenJS 3.12.0 (vendor/pptxgen.bundle.js)
 Copyright (c) Brent Ely and contributors. Licensed under the MIT License.
 Source: https://github.com/gitbrent/PptxGenJS
+Includes JSZip (Stuart Knightley and contributors, MIT licence or GPLv3), used to read and write .pptx files.
+Source: https://github.com/Stuk/jszip

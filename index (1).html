@@ -1,0 +1,2175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tabbed Slides</title>
+<meta name="description" content="Tabbed Slides: alpha. Build slides in your browser, present them, open and save PowerPoint, export HTML.">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#1e3a5f">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icons/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="./icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="./icons/favicon-16.png" sizes="16x16" type="image/png">
+<link rel="shortcut icon" href="./favicon.ico">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<style>
+:root{--header:#1e3a5f;--bg:#f4f7fb;--accent:#2c5282;--accent-2:#4a7bb7;--paper:#fbfdff;--ink:#13233d;--muted:#4a5e7a;--line:#cfdaea;--tab:#dbe7f5}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px system-ui,-apple-system,"Segoe UI",sans-serif}
+button,input,textarea,select{font:inherit;color:inherit}
+header{background:var(--header);color:#fff;padding:20px 5% 16px;display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+header h1{font-size:22px;margin:0 0 4px;font-weight:650}
+header h1 .alpha{font-size:12px;font-weight:600;background:#f2c14e;color:#3a2a00;border-radius:4px;padding:2px 7px;margin-left:8px;vertical-align:middle}
+header p{margin:0;color:#dbe7f5;font-size:13px}
+header .count{font-size:12px;color:#dbe7f5}
+nav.ribbon{display:flex;gap:6px;flex-wrap:wrap;padding:10px 5%;background:#f4f7fb;border-bottom:1px solid #cfdaea}
+nav.ribbon button{min-height:40px;padding:6px 12px;border:1px solid #9fb6d6;border-radius:6px;background:#fff;cursor:pointer}
+nav.ribbon button:hover{background:#dbe7f5}
+nav.ribbon button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+nav.ribbon button:focus-visible,.tab-wrap button:focus-visible,.slide-item:focus-visible,.btn-row button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:10px 5% 0;background:#dbe7f5;align-items:flex-end}
+.tab-wrap{display:flex;flex-shrink:0;border:1px solid var(--line);border-radius:8px 8px 0 0;background:var(--tab)}
+.tab-wrap.active{background:#fff;border-bottom-color:#fff}
+.tab-wrap button{border:0;background:transparent;padding:10px 12px;min-height:44px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;font-size:13px}
+.tab-wrap .close{padding:10px 11px;color:var(--muted)}
+.tab-add button{min-width:44px;font-size:20px;color:var(--accent);font-weight:600}
+main{display:grid;grid-template-columns:200px minmax(0,1fr) 250px;min-height:calc(100vh - 230px);background:#fff;border-top:1px solid var(--line)}
+aside{padding:14px;background:#f4f7fb}
+aside.left{border-right:1px solid #cfdaea}
+aside.right{border-left:1px solid #cfdaea}
+aside h2{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:4px 0 10px;font-weight:650}
+.slide-list{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:8px}
+.slide-item{display:block;width:100%;text-align:left;border:1px solid var(--line);border-radius:6px;background:#fff;padding:8px 10px;cursor:pointer;min-height:44px}
+.slide-item.current{border-color:var(--accent);box-shadow:0 0 0 2px #2c528233}
+.slide-item .num{display:block;font-size:11px;color:var(--muted)}
+.slide-item .name{display:block;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#slidelist,#slidelist li,.slide-item{min-width:0;max-width:100%}.slide-item{overflow:hidden}aside.left{min-width:0;overflow-x:hidden}
+.btn-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.btn-row button{min-height:40px;padding:6px 10px;border:1px solid #9fb6d6;border-radius:6px;background:#fff;cursor:pointer;font-size:13px}
+.btn-row button:disabled{opacity:.45;cursor:default}
+.editor{padding:22px 5%;display:flex;flex-direction:column;gap:14px;min-width:0}
+.editor label,aside label{font-size:12px;color:var(--muted);display:block;margin-bottom:4px}
+.editor input[type=text],.editor textarea,aside input[type=text],aside select,.editor select{width:100%;border:1px solid var(--line);border-radius:6px;padding:9px 11px;background:#fff;min-height:42px}
+.editor textarea{min-height:110px;resize:vertical;line-height:1.5}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stage{aspect-ratio:16/9;width:100%;max-width:840px;background:var(--paper);border:1px solid #cfdaea;border-top:10px solid var(--accent-2);box-shadow:0 3px 18px #1e3a5f18;overflow:hidden;position:relative}
+.sl{width:100%;height:100%;padding:6% 7%;background:var(--paper);color:var(--ink);font-family:"Literata",Georgia,serif;display:flex;flex-direction:column;overflow:hidden;--header:#1e3a5f;--accent:#4a7bb7;--paper:#fbfdff;--ink:#13233d}
+.sl h2{margin:0 0 4%;font-size:clamp(18px,3.2vw,38px);line-height:1.2;color:var(--header);font-weight:700;overflow-wrap:anywhere}
+.sl .cols{display:flex;gap:4%;flex:1;min-height:0}
+.sl .text{flex:1 1 0;min-width:0}
+.sl .side{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:3%;min-height:0}
+.sl ul{margin:0;padding-left:1.2em;font-size:clamp(13px,2vw,24px);line-height:1.5}
+.sl li{margin-bottom:.35em;overflow-wrap:anywhere}
+.sl li.hidden-step{visibility:hidden}
+.sl .ghost{color:#8aa0bf;list-style:none;margin-left:-1.2em}
+.sl img{max-width:100%;max-height:100%;object-fit:contain;display:block;margin:0 auto}
+.sl svg{width:100%;height:auto;max-height:100%}
+.status{font-size:12px;color:var(--muted)}
+.status.error{color:#9b2c1f}
+.help{font-size:13px;color:var(--muted);line-height:1.5}
+footer{padding:14px 5%;background:var(--header);color:#f4f7fb;font-size:13px}
+footer .credit{margin:6px 0 0;color:#dbe7f5}
+#present{position:fixed;inset:0;background:#13233d;color:#fff;display:none;align-items:center;justify-content:center;padding:4vh 6vw;z-index:50}
+#present.on{display:flex}
+#present .pwrap{width:min(100%,calc(100vh*16/9));aspect-ratio:16/9;position:relative}
+#present .pwrap .sl{padding:6% 7%;border-top:14px solid var(--accent-2)}
+#present .pwrap .sl h2{font-size:clamp(22px,4vw,56px)}
+#present .pwrap .sl ul{font-size:clamp(16px,2.6vw,34px)}
+#present .pbar{position:absolute;bottom:-26px;left:0;right:0;text-align:center;font-size:14px;color:#dbe7f5}
+#present .pnotes{position:fixed;left:6vw;right:6vw;bottom:2vh;height:22vh;box-sizing:border-box;padding:10px 16px;overflow-y:auto;background:rgba(255,255,255,.08);border-radius:8px;color:#e6f1ec;font-size:clamp(15px,1.6vw,22px);line-height:1.45;white-space:pre-wrap}
+#present.notes-on{padding:3vh 6vw calc(26vh + 10px)}
+#present.notes-on .pwrap{width:min(100%,calc(64vh*16/9))}
+#present .pclose{position:fixed;top:12px;right:14px;min-height:44px;padding:6px 14px;background:#fff;color:var(--header);border:0;border-radius:6px;cursor:pointer}
+#present .pnav{position:fixed;top:50%;transform:translateY(-50%);background:transparent;color:#fff;border:0;font-size:34px;padding:12px;cursor:pointer;min-width:44px;min-height:44px}
+#present .pnav.prev{left:6px}#present .pnav.next{right:6px}
+#printarea{display:none}
+@media print{
+  body>*:not(#printarea){display:none!important}
+  #printarea{display:block}
+  @page{size:A4 landscape;margin:0}
+  #printarea .sl{width:297mm;height:210mm;padding:14mm 18mm;page-break-after:always;border-top:6mm solid #4a7bb7;box-sizing:border-box;font-size:1em}
+  #printarea .sl h2{font-size:30pt}
+  #printarea .sl ul{font-size:19pt}
+  #printarea .sl li.hidden-step{visibility:visible}
+  #printarea .flpage{width:297mm;height:210mm;page-break-after:always;break-after:page}
+}
+@media (max-width:980px){main{grid-template-columns:1fr}aside.left,aside.right{border:0;border-top:1px solid #cfdaea}}
+
+/* v1.2: ribbon, in-place editing, bottom bar */
+.ribtabs{display:flex;gap:4px;padding:6px 5% 0;background:#dbe7f5;border-bottom:1px solid #cfdaea}
+.rtab{border:0;border-radius:6px 6px 0 0;background:transparent;padding:10px 16px;min-height:42px;font:600 13px system-ui,sans-serif;color:#1e3a5f;cursor:pointer;border-bottom:3px solid transparent}
+.rtab[aria-selected="true"]{background:#fff;color:#1e3a5f;box-shadow:inset 0 -3px var(--accent-2)}
+.rtab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+nav.ribbon{display:block;padding:8px 5%;background:#fff;border-bottom:1px solid #cfdaea;min-height:62px}
+.rsec{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:46px}
+.rsec[hidden]{display:none}
+nav.ribbon button{min-width:40px;min-height:40px;width:40px;padding:0;display:inline-flex;align-items:center;justify-content:center;border:1px solid #9fb6d6;border-radius:8px;background:#fff;cursor:pointer}
+nav.ribbon button:hover{background:#e4efe8}
+nav.ribbon button.primary{background:var(--accent);border-color:var(--accent);color:#fff;width:auto;padding:0 14px;gap:8px;font-size:14px;font-weight:600}
+nav.ribbon button.primary svg{width:20px;height:20px}
+nav.ribbon button svg{width:21px;height:21px;display:block;flex:none}
+nav.ribbon button:disabled{opacity:.4;cursor:default}
+.rsep{width:1px;height:28px;background:#cfdaea;margin:0 6px}
+.rlabel{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.rlabel svg{width:20px;height:20px}
+.rlabel .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+nav.ribbon select{min-height:40px;min-width:170px;border:1px solid #9fb6d6;border-radius:8px;background:#fff;padding:6px 10px}
+.rsec-about{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;align-items:start}
+.rsec-about h3{font-size:13px;margin:0 0 6px;color:var(--header);display:flex;align-items:center;gap:8px}
+.rsec-about .ah{width:20px;height:20px;flex:none;color:var(--accent)}
+.rsec-about .help{margin:0}
+.sl h2[contenteditable]:focus,.sl li[contenteditable]:focus{outline:2px dashed #2c528255;outline-offset:4px;border-radius:3px}
+.sl h2:empty:before{content:'Click and type a title';opacity:.45}
+.sl li:empty:before{content:'Type a point';color:#8aa0bf}
+.stage{cursor:text}
+.stage.free{border-top-width:1px;cursor:default}
+.stage.free [contenteditable]{cursor:text}
+.editor > .help{margin:0}
+footer.bottombar{position:sticky;bottom:0;z-index:10;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 5%;background:var(--header);color:#f4f7fb;font-size:12px}
+footer.bottombar .ver{color:#dbe7f5}
+footer.bottombar .status{color:#dbe7f5}
+.rtab{cursor:pointer;transition:background .15s,color .15s}
+.rtab:hover{background:#dbe7f5;color:#1e3a5f}
+.rtab:active{transform:translateY(1px)}
+body.ribbon-off nav.ribbon{display:none}
+/* v1.8: spelling and dark blue */
+.rcheck{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--ink)}
+.rcheck input{width:auto;margin:0}
+#spellstate{font-size:12px;color:var(--muted);margin-left:6px}
+.spell-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.spell-list li{border:1px solid var(--line);border-radius:6px;background:#fff;padding:8px 10px;font-size:13px}
+.spell-list .sp-word{font-weight:650}
+.spell-list button{font:inherit;font-size:12px;margin:6px 4px 0 0;padding:3px 8px;border:1px solid #bfcfe6;border-radius:5px;background:#fff;cursor:pointer;min-height:28px}
+.spell-list button:hover{background:#eef3fb}
+::highlight(tw-spell){text-decoration-line:underline;text-decoration-style:wavy;text-decoration-color:#c0392b}
+</style>
+<style id="edition-v231-literata">/* literata-cyrillic-ext-400-normal */
+@font-face {
+  font-family: 'Literata';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url(fonts/literata-cyrillic-ext-400-normal.woff2) format('woff2');
+  unicode-range: U+0460-052F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F;
+}
+
+/* literata-cyrillic-400-normal */
+@font-face {
+  font-family: 'Literata';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url(fonts/literata-cyrillic-400-normal.woff2) format('woff2');
+  unicode-range: U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;
+}
+
+/* literata-greek-ext-400-normal */
+@font-face {
+  font-family: 'Literata';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url(fonts/literata-greek-ext-400-normal.woff2) format('woff2');
+  unicode-range: U+1F00-1FFF;
+}
+
+/* literata-greek-400-normal */
+@font-face {
+  font-family: 'Literata';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url(fonts/literata-greek-400-normal.woff2) format('woff2');
+  unicode-range: U+0370-0377,U+037A-037F,U+0384-038A,U+038C,U+038E-03A1,U+03A3-03FF;
+}
+
+/* literata-vietnamese-400-normal */
+@font-face {
+  font-family: 'Literata';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url(fonts/literata-vietnamese-400-normal.woff2) format('woff2');
+  unicode-range: U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB;
+}
+
+/* literata-latin-ext-400-normal */
+@font-face {
+  font-family: 'Literata';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url(fonts/literata-latin-ext-400-normal.woff2) format('woff2');
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+
+/* literata-latin-400-normal */
+@font-face {
+  font-family: 'Literata';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url(fonts/literata-latin-400-normal.woff2) format('woff2');
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+/* literata-cyrillic-ext-400-italic */
+@font-face {
+  font-family: 'Literata';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 400;
+  src: url(fonts/literata-cyrillic-ext-400-italic.woff2) format('woff2');
+  unicode-range: U+0460-052F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F;
+}
+
+/* literata-cyrillic-400-italic */
+@font-face {
+  font-family: 'Literata';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 400;
+  src: url(fonts/literata-cyrillic-400-italic.woff2) format('woff2');
+  unicode-range: U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;
+}
+
+/* literata-greek-ext-400-italic */
+@font-face {
+  font-family: 'Literata';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 400;
+  src: url(fonts/literata-greek-ext-400-italic.woff2) format('woff2');
+  unicode-range: U+1F00-1FFF;
+}
+
+/* literata-greek-400-italic */
+@font-face {
+  font-family: 'Literata';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 400;
+  src: url(fonts/literata-greek-400-italic.woff2) format('woff2');
+  unicode-range: U+0370-0377,U+037A-037F,U+0384-038A,U+038C,U+038E-03A1,U+03A3-03FF;
+}
+
+/* literata-vietnamese-400-italic */
+@font-face {
+  font-family: 'Literata';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 400;
+  src: url(fonts/literata-vietnamese-400-italic.woff2) format('woff2');
+  unicode-range: U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB;
+}
+
+/* literata-latin-ext-400-italic */
+@font-face {
+  font-family: 'Literata';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 400;
+  src: url(fonts/literata-latin-ext-400-italic.woff2) format('woff2');
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+
+/* literata-latin-400-italic */
+@font-face {
+  font-family: 'Literata';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 400;
+  src: url(fonts/literata-latin-400-italic.woff2) format('woff2');
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+/* literata-cyrillic-ext-700-normal */
+@font-face {
+  font-family: 'Literata';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url(fonts/literata-cyrillic-ext-700-normal.woff2) format('woff2');
+  unicode-range: U+0460-052F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F;
+}
+
+/* literata-cyrillic-700-normal */
+@font-face {
+  font-family: 'Literata';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url(fonts/literata-cyrillic-700-normal.woff2) format('woff2');
+  unicode-range: U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;
+}
+
+/* literata-greek-ext-700-normal */
+@font-face {
+  font-family: 'Literata';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url(fonts/literata-greek-ext-700-normal.woff2) format('woff2');
+  unicode-range: U+1F00-1FFF;
+}
+
+/* literata-greek-700-normal */
+@font-face {
+  font-family: 'Literata';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url(fonts/literata-greek-700-normal.woff2) format('woff2');
+  unicode-range: U+0370-0377,U+037A-037F,U+0384-038A,U+038C,U+038E-03A1,U+03A3-03FF;
+}
+
+/* literata-vietnamese-700-normal */
+@font-face {
+  font-family: 'Literata';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url(fonts/literata-vietnamese-700-normal.woff2) format('woff2');
+  unicode-range: U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB;
+}
+
+/* literata-latin-ext-700-normal */
+@font-face {
+  font-family: 'Literata';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url(fonts/literata-latin-ext-700-normal.woff2) format('woff2');
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+
+/* literata-latin-700-normal */
+@font-face {
+  font-family: 'Literata';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url(fonts/literata-latin-700-normal.woff2) format('woff2');
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+/* literata-cyrillic-ext-700-italic */
+@font-face {
+  font-family: 'Literata';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 700;
+  src: url(fonts/literata-cyrillic-ext-700-italic.woff2) format('woff2');
+  unicode-range: U+0460-052F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F;
+}
+
+/* literata-cyrillic-700-italic */
+@font-face {
+  font-family: 'Literata';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 700;
+  src: url(fonts/literata-cyrillic-700-italic.woff2) format('woff2');
+  unicode-range: U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;
+}
+
+/* literata-greek-ext-700-italic */
+@font-face {
+  font-family: 'Literata';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 700;
+  src: url(fonts/literata-greek-ext-700-italic.woff2) format('woff2');
+  unicode-range: U+1F00-1FFF;
+}
+
+/* literata-greek-700-italic */
+@font-face {
+  font-family: 'Literata';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 700;
+  src: url(fonts/literata-greek-700-italic.woff2) format('woff2');
+  unicode-range: U+0370-0377,U+037A-037F,U+0384-038A,U+038C,U+038E-03A1,U+03A3-03FF;
+}
+
+/* literata-vietnamese-700-italic */
+@font-face {
+  font-family: 'Literata';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 700;
+  src: url(fonts/literata-vietnamese-700-italic.woff2) format('woff2');
+  unicode-range: U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB;
+}
+
+/* literata-latin-ext-700-italic */
+@font-face {
+  font-family: 'Literata';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 700;
+  src: url(fonts/literata-latin-ext-700-italic.woff2) format('woff2');
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+
+/* literata-latin-700-italic */
+@font-face {
+  font-family: 'Literata';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 700;
+  src: url(fonts/literata-latin-700-italic.woff2) format('woff2');
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Tabbed Slides</h1>
+    <p>Slides for presentations, one tab per deck. Everything stays in this browser.</p>
+  </div>
+  <span class="count" id="deckcount"></span>
+</header>
+
+<div class="ribtabs" role="tablist" aria-label="Ribbon sections"><button type="button" class="rtab" role="tab" data-sec="Home" aria-selected="true">Home</button><button type="button" class="rtab" role="tab" data-sec="Slide" aria-selected="false">Slide</button><button type="button" class="rtab" role="tab" data-sec="Insert" aria-selected="false">Insert</button><button type="button" class="rtab" role="tab" data-sec="Review" aria-selected="false">Review</button><button type="button" class="rtab" role="tab" data-sec="Design" aria-selected="false">Design</button><button type="button" class="rtab" role="tab" data-sec="Export" aria-selected="false">Export</button><button type="button" class="rtab" role="tab" data-sec="About" aria-selected="false">About</button></div>
+<nav class="ribbon" aria-label="Deck actions"><section class="rsec" data-sec="Home" role="tabpanel"><button type="button" id="newdeck" title="New deck" aria-label="New deck"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M12 11v6M9 14h6"/></svg></button><button type="button" id="opendeck" title="Open file (.json or PowerPoint .pptx)  Ctrl+O" aria-label="Open file"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></button><button type="button" id="savedeck" title="Save file in the format it was opened in  Ctrl+S" aria-label="Save file"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h11l3 3v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M8 3v5h7V3M8 21v-7h8v7"/></svg></button><button type="button" id="savepptx" title="Save as PowerPoint (.pptx)" aria-label="Save as PowerPoint (.pptx)"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h11l3 3v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M9 17v-6h2.5a2 2 0 0 1 0 4H9"/></svg></button><span class="rsep" aria-hidden="true"></span><button type="button" id="presentbtn" class="primary" title="Present" aria-label="Present"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M10 7.5v4.5l3.6-2.25z"/><path d="M12 16v4M8 20h8"/></svg></button><span class="rsep" aria-hidden="true"></span><button type="button" id="discardall" title="Discard all decks" aria-label="Discard all decks"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></section><section class="rsec" data-sec="Slide" role="tabpanel" hidden><button type="button" id="addslide" title="New slide after this one" aria-label="New slide after this one"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="13" rx="1.5"/><path d="M12 7.5v6M9 10.5h6"/></svg></button><button type="button" id="dupslide" title="Copy this slide" aria-label="Copy this slide"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="1.5"/><path d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-9A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16H8"/></svg></button><button type="button" id="delslide" title="Delete this slide" aria-label="Delete this slide"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button><span class="rsep" aria-hidden="true"></span><button type="button" id="upslide" title="Move slide up" aria-label="Move slide up"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button><button type="button" id="downslide" title="Move slide down" aria-label="Move slide down"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg></button></section><section class="rsec" data-sec="Insert" role="tabpanel" hidden><button type="button" id="addpic" title="Add picture to this slide" aria-label="Add picture to this slide"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M4 17l5-5 4 4 3-3 4 4"/><circle cx="15.5" cy="8.5" r="1.5"/></svg></button><button type="button" id="delpic" title="Remove picture" aria-label="Remove picture"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M4 17l5-5 4 4 3-3 4 4"/><circle cx="15.5" cy="8.5" r="1.5"/><path d="M3 3l18 18"/></svg></button><span class="rsep" aria-hidden="true"></span><label class="rlabel" for="chartkind"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V4M4 20h16"/><path d="M8 16v-5M12 16V8M16 16v-3"/></svg><span class="sr">Chart</span></label><select id="chartkind" title="Chart on this slide"><option value="none">No chart</option><option value="bar">Bar chart</option><option value="line">Line chart</option></select></section><section class="rsec" data-sec="Review" role="tabpanel" hidden><label class="rcheck"><input type="checkbox" id="spellon" checked> Check spelling (English, Greek, Turkish)</label><span class="status" id="spellstate" role="status" aria-live="polite"></span></section><section class="rsec" data-sec="Design" role="tabpanel" hidden><label class="rlabel" for="theme"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="8" cy="10" r="1.3"/><circle cx="12" cy="7.5" r="1.3"/><circle cx="16" cy="10" r="1.3"/><path d="M12 21a2.5 2.5 0 0 1 0-5h2a2.5 2.5 0 0 0 0-5"/></svg><span>Theme</span></label><select id="theme" title="Colour theme for this deck"><option value="slate">Dark blue (default)</option><option value="orange">Dark yellow</option><option value="green">Green</option><option value="ink">Ink blue</option><option value="sand">Sand</option></select></section><section class="rsec" data-sec="Export" role="tabpanel" hidden><button type="button" id="exporthtml" title="Export HTML: one file for any browser" aria-label="Export HTML: one file for any browser"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 8l-4 4 4 4M16 8l4 4-4 4M14 5l-4 14"/></svg></button><button type="button" id="exportppt" title="Export PowerPoint (.pptx)" aria-label="Export PowerPoint (.pptx)"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4M8 9h8M8 12h5"/></svg></button><button type="button" id="printdeck" title="Print or save as PDF" aria-label="Print or save as PDF"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9V3h10v6"/><rect x="4" y="9" width="16" height="8" rx="1.5"/><path d="M7 14h10v7H7z"/></svg></button></section><section class="rsec rsec-about" data-sec="About" role="tabpanel" hidden><div><h3><svg class="ah" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg>Keys in Present</h3><p class="help">→ or Space: next point, then next slide<br>← : previous point or slide<br>N: show or hide speaker notes<br>Esc: close</p></div><div><h3><svg class="ah" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.5h.01"/></svg>About Tabbed Slides</h3><p class="help">Alpha version 2.0. For presentations. Video, animations between slides and advanced layouts are not supported yet.<br>Open file reads Tabbed Slides (.json) and PowerPoint (.pptx) files. PowerPoint slides keep their layout: text boxes, shapes, lines, pictures, tables, charts and speaker notes stay where they were, and you can change any text on the slide. Animations, videos and SmartArt are not shown, and pictures cannot yet be moved on these slides. Save file saves in the format the deck was opened in; Save as PowerPoint saves a .pptx. In Chrome and Edge, Save writes back into the same file; in other browsers it goes to your downloads. After the first visit online, the app also works offline. Export HTML makes one file for any browser, with the same reveal keys. Export PowerPoint makes a .pptx file with editable charts and notes. Pictures are resized in your browser before saving.</p></div><div><h3><svg class="ah" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>Made by</h3><p class="help">The Last Byzantine, MMXXVI. Sharing is love!</p></div></section><input type="file" id="filein" accept=".json,.pptx,application/json,application/vnd.openxmlformats-officedocument.presentationml.presentation" hidden><input type="file" id="imgin" accept="image/*" hidden></nav>
+
+<div id="tabs" class="tabs" role="tablist" aria-label="Open decks"></div>
+
+<main>
+  <aside class="left" aria-label="Slides">
+    <h2>Slides</h2>
+    <ul id="slidelist" class="slide-list"></ul>
+  </aside>
+
+  <section class="editor" aria-label="Slide editor">
+    <p class="help" id="stagehelp">Click the title or a point on the slide and type. Enter adds a point.</p>
+    <div class="stage" id="stage"></div>
+    <div>
+      <label for="snotes">Speaker notes (shown in Present, and kept in PowerPoint)</label>
+      <textarea id="snotes" style="min-height:70px" placeholder="Notes for the presenter"></textarea>
+    </div>
+  </section>
+
+  <aside class="right" aria-label="Deck">
+    <h2>Deck</h2>
+    <label for="dtitle">Deck title (tab name)</label>
+    <input type="text" id="dtitle" maxlength="120" placeholder="Deck title">
+    <h2 style="margin-top:18px">Possible misspellings</h2><ul id="spelllist" class="spell-list" aria-label="Possible misspellings"></ul><div id="chartbox" style="margin-top:14px">
+      <label for="chartdata">Chart data: one row per line, label, value</label>
+      <textarea id="chartdata" placeholder="2023, 120&#10;2024, 145&#10;2025, 160" style="min-height:80px"></textarea>
+    </div>
+  </aside>
+</main>
+
+<footer class="bottombar">
+  <span id="dinfo"></span>
+  <span class="status" id="autosave" role="status" aria-live="polite">Saved in this browser</span>
+  <span class="ver">Tabbed Slides alpha 2.0</span>
+</footer>
+
+<div id="present" role="dialog" aria-modal="true" aria-label="Presentation">
+  <button type="button" class="pclose" id="pclose">Close</button>
+  <button type="button" class="pnav prev" id="pprev" aria-label="Previous">‹</button>
+  <div class="pwrap">
+    <div id="pslide" style="width:100%;height:100%"></div>
+    <div class="pbar" id="pbar"></div>
+    <div class="pnotes" id="pnotes" hidden></div>
+  </div>
+  <button type="button" class="pnav next" id="pnext" aria-label="Next">›</button>
+</div>
+
+<div id="printarea" aria-hidden="true"></div>
+
+
+<script src="./vendor/pptxgen.bundle.js"></script>
+<script>
+(function () {
+  'use strict';
+  var KEY = 'tabbed-slides-v1';
+  var THEMES = {
+    slate: { header: '#1e3a5f', accent: '#2c5282', paper: '#fbfdff', ink: '#13233d', pptHeader: '1E3A5F', pptAccent: '2C5282', pptPaper: 'FBFDFF', pptInk: '13233D' },
+    orange: { header: '#6e5600', accent: '#8c6d00', paper: '#fffdf3', ink: '#3a3008', pptHeader: '6E5600', pptAccent: '8C6D00', pptPaper: 'FFFDF3', pptInk: '3A3008' },
+    green: { header: '#183d33', accent: '#1f6b52', paper: '#fffdf6', ink: '#20332e', pptHeader: '183D33', pptAccent: '1F6B52', pptPaper: 'FFFDF6', pptInk: '20332E' },
+    ink:   { header: '#1b2a41', accent: '#3a6ea5', paper: '#ffffff', ink: '#1b2a41', pptHeader: '1B2A41', pptAccent: '3A6EA5', pptPaper: 'FFFFFF', pptInk: '1B2A41' },
+    sand:  { header: '#5a4a2f', accent: '#b08d57', paper: '#faf6ec', ink: '#3b3024', pptHeader: '5A4A2F', pptAccent: 'B08D57', pptPaper: 'FAF6EC', pptInk: '3B3024' }
+  };
+  var state = null, presStep = 0, presIndex = 0, notesOn = false, saveTimer = null;
+
+  function $(id) { return document.getElementById(id); }
+  function uid() { return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(36).slice(2)); }
+  function newSlide(title) { return { id: uid(), title: title || 'New slide', points: [], notes: '', image: null, chart: null }; }
+  function newDeck(title) { return { id: uid(), title: title || 'New presentation', theme: 'slate', slides: [newSlide()], current: 0 }; }
+  function deck() { return state.decks.find(function (d) { return d.id === state.activeId; }) || state.decks[0]; }
+  function slide() { var d = deck(); return d.slides[d.current] || d.slides[0]; }
+  function clamp(d) { d.current = Math.max(0, Math.min(d.slides.length - 1, d.current)); }
+  function theme(d) { return THEMES[d.theme] || THEMES.green; }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
+  function isSlide(s) {
+    return s && typeof s.id === 'string' && typeof s.title === 'string' && Array.isArray(s.points) &&
+      s.points.every(function (p) { return typeof p === 'string'; }) &&
+      (s.notes === undefined || typeof s.notes === 'string') &&
+      (s.image === undefined || s.image === null || (typeof s.image === 'string' && s.image.indexOf('data:image/') === 0)) &&
+      (s.chart === undefined || s.chart === null || (s.chart && (s.chart.type === 'bar' || s.chart.type === 'line') && Array.isArray(s.chart.data))) &&
+      (s.layout === undefined || s.layout === null || (typeof s.layout === 'object' && Array.isArray(s.layout.items) && isFinite(s.layout.w) && isFinite(s.layout.h)));
+  }
+  function isDeck(d) { return d && typeof d.id === 'string' && typeof d.title === 'string' && Array.isArray(d.slides) && d.slides.length > 0 && d.slides.every(isSlide); }
+  function valid(s) { return s && s.version === 1 && Array.isArray(s.decks) && s.decks.length > 0 && s.decks.every(isDeck) && typeof s.activeId === 'string'; }
+  function readStore() {
+    try { var raw = localStorage.getItem(KEY); if (raw) { var s = JSON.parse(raw); if (valid(s)) return s; } } catch (e) {}
+    return null;
+  }
+  function setStatus(text, isError) { var el = $('autosave'); el.textContent = text; el.className = 'status' + (isError ? ' error' : ''); }
+  function writeStore() {
+    try {
+      localStorage.setItem(KEY, JSON.stringify({ version: 1, activeId: state.activeId, decks: state.decks }));
+      setStatus('Saved in this browser · ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' }), false);
+    } catch (e) { setStatus('Could not save in this browser (storage full?). Use Save file.', true); }
+  }
+  function queueSave() { setStatus('Saving…', false); clearTimeout(saveTimer); saveTimer = setTimeout(writeStore, 400); }
+
+  /* Chart and slide markup, shared by the editor, Present, print and HTML export */
+  function chartRows(chart) {
+    return (chart && chart.data ? chart.data : []).filter(function (r) { return r && typeof r.label === 'string' && isFinite(r.value); });
+  }
+  function svgChart(chart, t) {
+    var rows = chartRows(chart);
+    if (!rows.length) return '';
+    var W = 600, H = 320, L = 52, R = 20, T = 16, B = 56;
+    var max = Math.max.apply(null, rows.map(function (r) { return r.value; }).concat([0]));
+    var min = Math.min.apply(null, rows.map(function (r) { return r.value; }).concat([0]));
+    var span = (max - min) || 1, n = rows.length, cw = (W - L - R) / n;
+    function y(v) { return T + (H - T - B) * (1 - (v - min) / span); }
+    var out = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Chart" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,sans-serif">';
+    out += '<line x1="' + L + '" y1="' + y(0) + '" x2="' + (W - R) + '" y2="' + y(0) + '" stroke="#8a9a92"/>';
+    if (chart.type === 'line') {
+      var pts = rows.map(function (r, i) { return (L + cw * i + cw / 2).toFixed(1) + ',' + y(r.value).toFixed(1); });
+      out += '<polyline points="' + pts.join(' ') + '" fill="none" stroke="' + t.accent + '" stroke-width="3"/>';
+      rows.forEach(function (r, i) { out += '<circle cx="' + (L + cw * i + cw / 2).toFixed(1) + '" cy="' + y(r.value).toFixed(1) + '" r="5" fill="' + t.accent + '"/>'; });
+    } else {
+      rows.forEach(function (r, i) {
+        var top = Math.min(y(r.value), y(0)), h = Math.abs(y(r.value) - y(0));
+        out += '<rect x="' + (L + cw * i + cw * 0.18).toFixed(1) + '" y="' + top.toFixed(1) + '" width="' + (cw * 0.64).toFixed(1) + '" height="' + h.toFixed(1) + '" fill="' + t.accent + '"/>';
+      });
+    }
+    rows.forEach(function (r, i) {
+      out += '<text x="' + (L + cw * i + cw / 2).toFixed(1) + '" y="' + (H - 30) + '" text-anchor="middle" font-size="14" fill="#13233d">' + esc(r.label) + '</text>';
+      out += '<text x="' + (L + cw * i + cw / 2).toFixed(1) + '" y="' + (y(r.value) - 8).toFixed(1) + '" text-anchor="middle" font-size="13" fill="#13233d">' + esc(String(r.value)) + '</text>';
+    });
+    return out + '</svg>';
+  }
+  /* step: null shows every point; a number shows that many (others keep their place but are hidden) */
+  function slideHTML(s, d, step, editable) {
+    if (s.layout) return flHTML(s, d, editable);
+    var t = theme(d), style = '--header:' + t.header + ';--accent:' + t.accent + ';--paper:' + t.paper + ';--ink:' + t.ink;
+    var items = s.points.map(function (p, i) {
+      var hidden = step !== null && step !== undefined && i >= step;
+      return '<li' + (hidden ? ' class="hidden-step"' : '') + (editable ? ' contenteditable="true" spellcheck="false"' : '') + '>' + esc(p) + '</li>';
+    }).join('');
+    var list = s.points.length ? '<ul>' + items + '</ul>' : (editable ? '<ul><li contenteditable="true" spellcheck="false"></li></ul>' : '<ul><li class="ghost" style="list-style:none">Points appear here</li></ul>');
+    var side = '';
+    if (s.image && s.image.indexOf('data:image/') === 0) side += '<img src="' + s.image + '" alt="">';
+    var rows = chartRows(s.chart);
+    if (rows.length) side += svgChart(s.chart, t);
+    var body = side ? '<div class="cols"><div class="text">' + list + '</div><div class="side">' + side + '</div></div>' : '<div class="cols"><div class="text">' + list + '</div></div>';
+    var head = editable ? '<h2 contenteditable="true" spellcheck="false" data-field="title">' + esc(s.title || '') + '</h2>' : '<h2>' + esc(s.title || 'Untitled slide') + '</h2>';
+    return '<div class="sl" style="' + style + '">' + head + body + '</div>';
+  }
+
+  /* Free-layout slides (opened from PowerPoint): items drawn where PowerPoint put them.
+     Sizes are in points; text is sized against the slide width (container query units). */
+  var FL_CSS =
+    '.flbox{width:100%;height:100%;container-type:size;display:flex;align-items:center;justify-content:center;overflow:hidden}' +
+    '.fl{position:relative;overflow:hidden;container-type:inline-size;flex:none;font-family:"Helvetica Neue",Arial,sans-serif;color:#000;text-align:left;line-height:1.2}' +
+    '.fl .fi{position:absolute;box-sizing:border-box}' +
+    '.fl .fg{position:absolute;box-sizing:border-box}' +
+    '.fl .ft{position:absolute;inset:0;display:flex;flex-direction:column;box-sizing:border-box;white-space:pre-wrap;overflow-wrap:break-word}' +
+    '.fl .fp{margin:0}' +
+    '.fl .fp[data-bu]::before{content:attr(data-bu);display:inline-block;min-width:var(--hang,0);text-indent:0;color:var(--buc,inherit)}' +
+    '.fl .fln{position:absolute;height:0;transform-origin:0 50%}' +
+    '.fl .fah{position:absolute;top:50%;width:0;height:0;border-style:solid;border-color:transparent}' +
+    '.fl table.ftb{position:absolute;inset:0;width:100%;height:100%;border-collapse:collapse;table-layout:fixed}' +
+    '.fl .ftb td{box-sizing:border-box;overflow:hidden;white-space:pre-wrap;overflow-wrap:break-word}' +
+    '.fl svg{width:100%;height:100%;display:block}' +
+    '.fl img{display:block;width:100%;height:100%;object-fit:fill}' +
+    '.fl [contenteditable]:focus{outline:1px dashed #2c5282aa;outline-offset:1px}';
+  (function () { var st = document.createElement('style'); st.textContent = FL_CSS; document.head.append(st); })();
+
+  var CLIPS = {
+    triangle: 'polygon(50% 0,100% 100%,0 100%)', rtTriangle: 'polygon(0 0,100% 100%,0 100%)',
+    diamond: 'polygon(50% 0,100% 50%,50% 100%,0 50%)', parallelogram: 'polygon(25% 0,100% 0,75% 100%,0 100%)',
+    trapezoid: 'polygon(25% 0,75% 0,100% 100%,0 100%)', pentagon: 'polygon(50% 0,100% 38%,82% 100%,18% 100%,0 38%)',
+    homePlate: 'polygon(0 0,80% 0,100% 50%,80% 100%,0 100%)', chevron: 'polygon(0 0,80% 0,100% 50%,80% 100%,0 100%,20% 50%)',
+    hexagon: 'polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)', octagon: 'polygon(30% 0,70% 0,100% 30%,100% 70%,70% 100%,30% 100%,0 70%,0 30%)',
+    rightArrow: 'polygon(0 25%,60% 25%,60% 0,100% 50%,60% 100%,60% 75%,0 75%)', leftArrow: 'polygon(100% 25%,40% 25%,40% 0,0 50%,40% 100%,40% 75%,100% 75%)',
+    upArrow: 'polygon(25% 100%,25% 40%,0 40%,50% 0,100% 40%,75% 40%,75% 100%)', downArrow: 'polygon(25% 0,75% 0,75% 60%,100% 60%,50% 100%,0 60%,25% 60%)',
+    plus: 'polygon(35% 0,65% 0,65% 35%,100% 35%,100% 65%,65% 65%,65% 100%,35% 100%,35% 65%,0 65%,0 35%,35% 35%)',
+    star5: 'polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)'
+  };
+  var WINGDINGS = { '§': '▪', 'Ø': '➢', 'ü': '✓', 'q': '❑', 'v': '❖', 'n': '■', 'l': '●', 'Ÿ': '•', 'ä': '➢', 'à': '➔', 'è': '➔', 'Ö': '➢' };
+  function hexOK(c) { return c && typeof c.c === 'string' && /^[0-9A-Fa-f]{6}$/.test(c.c) ? c : null; }
+  function cssColour(c) {
+    c = hexOK(c); if (!c) return 'transparent';
+    var a = Number(c.a);
+    if (!(a >= 0 && a < 1)) return '#' + c.c;
+    return 'rgba(' + parseInt(c.c.slice(0, 2), 16) + ',' + parseInt(c.c.slice(2, 4), 16) + ',' + parseInt(c.c.slice(4, 6), 16) + ',' + a + ')';
+  }
+  function fontStack(f) {
+    var name = String(f || '').replace(/[^\p{L}\p{N} \-]/gu, '').trim();
+    var serif = /(georgia|times|cambria|garamond|serif|book|literata|palatino|baskerville|minion)/i.test(name);
+    return (name ? "'" + name + "'," : '') + (serif ? "Georgia,'Times New Roman',serif" : "'Helvetica Neue',Arial,sans-serif");
+  }
+  function dashCss(d) { return !d || d === 'solid' ? 'solid' : /dot/i.test(d) && !/dash/i.test(d) ? 'dotted' : 'dashed'; }
+  function numLabel(type, n) {
+    var t = String(type || 'arabicPeriod'), s;
+    function roman(k) { var v = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1], r = ['m', 'cm', 'd', 'cd', 'c', 'xc', 'l', 'xl', 'x', 'ix', 'v', 'iv', 'i'], o = ''; v.forEach(function (x, i) { while (k >= x) { o += r[i]; k -= x; } }); return o; }
+    if (/^alphaLc/.test(t)) s = String.fromCharCode(96 + ((n - 1) % 26 + 1));
+    else if (/^alphaUc/.test(t)) s = String.fromCharCode(64 + ((n - 1) % 26 + 1));
+    else if (/^romanLc/.test(t)) s = roman(n);
+    else if (/^romanUc/.test(t)) s = roman(n).toUpperCase();
+    else s = String(n);
+    if (/ParenBoth$/.test(t)) return '(' + s + ')';
+    if (/ParenR$/.test(t)) return s + ')';
+    if (/Plain$/.test(t)) return s;
+    return s + '.';
+  }
+  function itemText(it) { return it && it.tx ? it.tx.paras.map(function (p) { return p.runs.map(function (r) { return r.t; }).join(''); }).join(' ').replace(/\s+/g, ' ').trim() : ''; }
+  function layoutText(L) {
+    var out = [];
+    (L.items || []).forEach(function (it) {
+      if (it.tx) it.tx.paras.forEach(function (p) { out.push(p.runs.map(function (r) { return r.t; }).join('')); });
+      if (it.rows) it.rows.forEach(function (r) { r.cells.forEach(function (c) { (c.paras || []).forEach(function (p) { out.push(p.runs.map(function (x) { return x.t; }).join('')); }); }); });
+    });
+    return out.join('\n');
+  }
+  function eachRun(L, fn) {
+    (L.items || []).forEach(function (it) {
+      if (it.tx) it.tx.paras.forEach(function (p) { p.runs.forEach(fn); });
+      if (it.rows) it.rows.forEach(function (r) { r.cells.forEach(function (c) { (c.paras || []).forEach(function (p) { p.runs.forEach(fn); }); }); });
+    });
+  }
+
+  /* Charts on PowerPoint slides: sized to their box, with a value axis and gridlines */
+  function svgChartFree(it, d) {
+    var ch = it.chart, rows = chartRows(ch); if (!rows.length) return '';
+    var W = 600, H = Math.max(120, W * (Number(it.h) || 1) / (Number(it.w) || 1)), k = W / (Number(it.w) || 1), fs = (Number(ch.fs) || 10) * k;
+    var col = ch.c && hexOK(ch.c) ? '#' + ch.c.c : theme(d).accent;
+    var T = ch.title ? fs * 3 : fs * 1.2, B = fs * 2.2, L = fs * 2.6, R = fs * 1.2;
+    var max = Math.max.apply(null, rows.map(function (r) { return r.value; }).concat([0])), min = Math.min.apply(null, rows.map(function (r) { return r.value; }).concat([0]));
+    var raw = ((max - min) || 1) / 5, mag = Math.pow(10, Math.floor(Math.log10(raw))), step = [1, 2, 2.5, 5, 10].map(function (m) { return m * mag; }).find(function (s) { return s >= raw; });
+    var top = Math.ceil(max / step) * step, bot = Math.floor(min / step) * step; if (top === bot) top = bot + step;
+    function y(v) { return T + (H - T - B) * (1 - (v - bot) / (top - bot)); }
+    var cw = (W - L - R) / rows.length;
+    var out = '<svg viewBox="0 0 ' + W + ' ' + H.toFixed(1) + '" preserveAspectRatio="none" role="img" aria-label="' + esc(ch.title || 'Chart') + '" xmlns="http://www.w3.org/2000/svg" font-family="Calibri,Carlito,Arial,sans-serif">';
+    if (ch.title) out += '<text x="' + W / 2 + '" y="' + (fs * 1.9).toFixed(1) + '" text-anchor="middle" font-size="' + (fs * 1.2).toFixed(1) + '" font-weight="700" fill="#262626">' + esc(ch.title) + '</text>';
+    for (var v = bot; v <= top + step / 2; v += step) {
+      var yy = y(v).toFixed(1), lbl = +v.toFixed(6);
+      out += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + yy + '" y2="' + yy + '" stroke="#D9D9D9" stroke-width="' + (0.75 * k).toFixed(2) + '"/>';
+      out += '<text x="' + (L - fs * 0.5).toFixed(1) + '" y="' + (Number(yy) + fs * 0.35).toFixed(1) + '" text-anchor="end" font-size="' + fs.toFixed(1) + '" fill="#595959">' + esc(String(lbl)) + '</text>';
+    }
+    if (ch.type === 'line') {
+      out += '<polyline fill="none" stroke="' + col + '" stroke-width="' + (2.25 * k).toFixed(2) + '" points="' + rows.map(function (r, i) { return (L + cw * i + cw / 2).toFixed(1) + ',' + y(r.value).toFixed(1); }).join(' ') + '"/>';
+      rows.forEach(function (r, i) { out += '<circle cx="' + (L + cw * i + cw / 2).toFixed(1) + '" cy="' + y(r.value).toFixed(1) + '" r="' + (3 * k).toFixed(1) + '" fill="' + col + '"/>'; });
+    } else rows.forEach(function (r, i) {
+      var t0 = Math.min(y(r.value), y(0)), hh = Math.abs(y(r.value) - y(0));
+      out += '<rect x="' + (L + cw * i + cw * 0.2).toFixed(1) + '" y="' + t0.toFixed(1) + '" width="' + (cw * 0.6).toFixed(1) + '" height="' + hh.toFixed(1) + '" fill="' + col + '"/>';
+    });
+    out += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(0).toFixed(1) + '" y2="' + y(0).toFixed(1) + '" stroke="#BFBFBF" stroke-width="' + (0.75 * k).toFixed(2) + '"/>';
+    rows.forEach(function (r, i) { out += '<text x="' + (L + cw * i + cw / 2).toFixed(1) + '" y="' + (H - B + fs * 1.5).toFixed(1) + '" text-anchor="middle" font-size="' + fs.toFixed(1) + '" fill="#595959">' + esc(r.label) + '</text>'; });
+    return out + '</svg>';
+  }
+  function flHTML(s, d, editable) {
+    var L = s.layout, W = Number(L.w) || 960, H = Number(L.h) || 540;
+    function u(v) { return +((Number(v) || 0) * 100 / W).toFixed(4) + 'cqw'; }
+    function pc(v, of) { return +((Number(v) || 0) * 100 / of).toFixed(4) + '%'; }
+    function pos(it) {
+      var st = 'left:' + pc(it.x, W) + ';top:' + pc(it.y, H) + ';width:' + pc(it.w, W) + ';height:' + pc(it.h, H) + ';';
+      if (Number(it.rot)) st += 'transform:rotate(' + Number(it.rot) + 'deg);';
+      return st;
+    }
+    function flip(it) { return (it.fh || it.fv) ? 'transform:scale(' + (it.fh ? -1 : 1) + ',' + (it.fv ? -1 : 1) + ');' : ''; }
+    function parasHTML(paras, addr) {
+      var count = 0, lastNum = null;
+      return paras.map(function (p, pi) {
+        var runs = Array.isArray(p.runs) ? p.runs : [], fsz = runs.length ? Number(runs[0].sz) || 18 : (Number(p.esz) || 18);
+        var st = 'text-align:' + ({ ctr: 'center', r: 'right', just: 'justify', dist: 'justify' }[p.al] || 'left') + ';font-size:' + u(fsz) + ';';
+        /* The paragraph carries its first run's look, so text typed on an empty line looks right straight away */
+        var r0 = runs[0];
+        if (r0) { st += 'color:' + cssColour(r0.c) + ';'; if (r0.f) st += 'font-family:' + fontStack(r0.f) + ';'; if (r0.b) st += 'font-weight:700;'; if (r0.i) st += 'font-style:italic;'; }
+        if (Number(p.marL)) st += 'padding-left:' + u(p.marL) + ';';
+        if (Number(p.ind)) st += 'text-indent:' + u(p.ind) + ';';
+        st += Number(p.lnPt) ? 'line-height:' + u(p.lnPt) + ';' : 'line-height:' + (1.2 * (Number(p.ln) || 100) / 100).toFixed(3) + ';';
+        if (Number(p.spcB)) st += 'margin-top:' + u(p.spcB) + ';'; else if (Number(p.spcBPct)) st += 'margin-top:' + u(p.spcBPct / 100 * 1.2 * fsz) + ';';
+        if (Number(p.spcA)) st += 'margin-bottom:' + u(p.spcA) + ';'; else if (Number(p.spcAPct)) st += 'margin-bottom:' + u(p.spcAPct / 100 * 1.2 * fsz) + ';';
+        var bu = '';
+        if (p.bu) {
+          var label;
+          if (p.bu.num) { count = lastNum === p.bu.num ? count + 1 : 1; lastNum = p.bu.num; label = numLabel(p.bu.num, (Number(p.bu.start) || 1) + count - 1); }
+          else { lastNum = null; label = String(p.bu.ch || '•'); if (p.bu.f && WINGDINGS[label]) label = WINGDINGS[label]; else if (p.bu.f) label = '•'; }
+          var hang = Number(p.ind) < 0 ? -Number(p.ind) : 0;
+          bu = ' data-bu="' + esc(label + (hang ? '' : ' ')) + '"';
+          st += '--hang:' + u(hang) + ';';
+          var bc = p.bu.c || (runs[0] && runs[0].c); if (bc) st += '--buc:' + cssColour(bc) + ';';
+        } else lastNum = null;
+        var inner = runs.map(function (r, ri) {
+          var rs = 'font-size:' + u(Number(r.sz) * (r.base ? 0.7 : 1) || 18) + ';color:' + cssColour(r.c) + ';';
+          if (r.f) rs += 'font-family:' + fontStack(r.f) + ';';
+          if (r.b) rs += 'font-weight:700;';
+          if (r.i) rs += 'font-style:italic;';
+          if (r.u) rs += 'text-decoration:underline;';
+          if (r.base) rs += 'vertical-align:' + (r.base > 0 ? 'super' : 'sub') + ';';
+          return '<span data-r="' + ri + '" style="' + rs + '">' + esc(r.t) + '</span>';
+        }).join('');
+        if (!runs.some(function (r) { return r.t; })) inner += '<br>';
+        return '<p class="fp" data-a="' + addr + '/' + pi + '"' + bu + ' style="' + st + '"' + (editable ? ' contenteditable="true" spellcheck="false"' : '') + '>' + inner + '</p>';
+      }).join('');
+    }
+    var out = (L.items || []).map(function (it, i) {
+      var k = it.k;
+      if (k === 'ln') {
+        var x1 = it.fh ? it.x + it.w : it.x, x2 = it.fh ? it.x : it.x + it.w, y1 = it.fv ? it.y + it.h : it.y, y2 = it.fv ? it.y : it.y + it.h;
+        if (Number(it.rot)) {
+          var cx = it.x + it.w / 2, cy = it.y + it.h / 2, a = it.rot * Math.PI / 180, co = Math.cos(a), si = Math.sin(a);
+          var r1 = [cx + (x1 - cx) * co - (y1 - cy) * si, cy + (x1 - cx) * si + (y1 - cy) * co], rr = [cx + (x2 - cx) * co - (y2 - cy) * si, cy + (x2 - cx) * si + (y2 - cy) * co];
+          x1 = r1[0]; y1 = r1[1]; x2 = rr[0]; y2 = rr[1];
+        }
+        var dx = x2 - x1, dy = y2 - y1, len = Math.sqrt(dx * dx + dy * dy), ang = Math.atan2(dy, dx) * 180 / Math.PI, lw = Number(it.line && it.line.w) || 0.75;
+        var col = cssColour(it.line && it.line.c), ah = Math.max(lw * 3, 4), heads = '';
+        if (it.tail) heads += '<i class="fah" style="right:' + u(-ah * 0.2) + ';border-width:' + u(ah / 2) + ' 0 ' + u(ah / 2) + ' ' + u(ah) + ';border-left-color:' + col + ';transform:translateY(-50%)"></i>';
+        if (it.head) heads += '<i class="fah" style="left:' + u(-ah * 0.2) + ';border-width:' + u(ah / 2) + ' ' + u(ah) + ' ' + u(ah / 2) + ' 0;border-right-color:' + col + ';transform:translateY(-50%)"></i>';
+        return '<div class="fln" style="left:' + pc(x1, W) + ';top:' + pc(y1, H) + ';width:' + u(len) + ';margin-top:' + u(-lw / 2) + ';border-top:' + u(lw) + ' ' + dashCss(it.line && it.line.dash) + ' ' + col + ';transform:rotate(' + ang.toFixed(3) + 'deg)">' + heads + '</div>';
+      }
+      if (k === 'pic') {
+        if (!it.src || String(it.src).indexOf('data:image/') !== 0) return '';
+        var ps = flip(it);
+        if (it.geom === 'ellipse') ps += 'border-radius:50%;';
+        if (it.line) ps += 'outline:' + u(it.line.w) + ' solid ' + cssColour(it.line.c) + ';';
+        return '<div class="fi" style="' + pos(it) + '"><img src="' + it.src + '" alt="" style="' + ps + '"></div>';
+      }
+      if (k === 'chart') return it.chart ? '<div class="fi" style="' + pos(it) + '">' + svgChartFree(it, d) + '</div>' : '';
+      if (k === 'tbl') {
+        var total = (it.cols || []).reduce(function (a, b) { return a + (Number(b) || 0); }, 0) || 1;
+        var anyStyle = it.rows.some(function (r) { return r.cells.some(function (c) { return c.fill || (c.bd && Object.keys(c.bd).length); }); });
+        var html = '<table class="ftb"><colgroup>' + (it.cols || []).map(function (w) { return '<col style="width:' + pc(w, total) + '">'; }).join('') + '</colgroup>';
+        it.rows.forEach(function (r, ri) {
+          html += '<tr style="height:' + u(r.h) + '">';
+          r.cells.forEach(function (c, ci) {
+            if (c.merged) return;
+            var ins = c.ins || [7.2, 3.6, 7.2, 3.6];
+            var cs = 'padding:' + u(ins[1]) + ' ' + u(ins[2]) + ' ' + u(ins[3]) + ' ' + u(ins[0]) + ';vertical-align:' + ({ ctr: 'middle', b: 'bottom' }[c.anchor] || 'top') + ';';
+            if (c.fill) cs += 'background:' + cssColour(c.fill) + ';';
+            if (anyStyle) {
+              [['lnL', 'left'], ['lnT', 'top'], ['lnR', 'right'], ['lnB', 'bottom']].forEach(function (b) { var l = c.bd && c.bd[b[0]]; if (l) cs += 'border-' + b[1] + ':' + u(l.w) + ' ' + dashCss(l.dash) + ' ' + cssColour(l.c) + ';'; });
+            } else cs += 'border:' + u(0.75) + ' solid #BFBFBF;';
+            html += '<td' + (c.span > 1 ? ' colspan="' + Number(c.span) + '"' : '') + (c.rspan > 1 ? ' rowspan="' + Number(c.rspan) + '"' : '') + ' style="' + cs + '">' + parasHTML(c.paras || [], i + '/' + ri + '/' + ci) + '</td>';
+          });
+          html += '</tr>';
+        });
+        return '<div class="fi" style="' + pos(it) + '">' + html + '</table></div>';
+      }
+      /* Shape, text box or placeholder */
+      var gs = '';
+      if (it.fill) gs += 'background:' + cssColour(it.fill) + ';';
+      if (it.bg && String(it.bg).indexOf('data:image/') === 0) gs += 'background:url(' + it.bg + ') center/100% 100% no-repeat;';
+      if (it.line) gs += 'border:' + u(it.line.w) + ' ' + dashCss(it.line.dash) + ' ' + cssColour(it.line.c) + ';inset:' + u(-(Number(it.line.w) || 0) / 2) + ';';
+      else gs += 'inset:0;';
+      if (it.geom === 'ellipse') gs += 'border-radius:50%;';
+      else if (it.geom === 'roundRect') gs += 'border-radius:' + u((it.adj != null ? Number(it.adj) : 0.16667) * Math.min(it.w, it.h)) + ';';
+      else if (CLIPS[it.geom]) gs += 'clip-path:' + CLIPS[it.geom] + ';';
+      gs += flip(it);
+      var body = (it.fill || it.line || it.bg) ? '<div class="fg" style="' + gs + '"></div>' : '';
+      if (it.tx) {
+        var ins = it.tx.ins || [7.2, 3.6, 7.2, 3.6];
+        var ts = 'padding:' + u(ins[1]) + ' ' + u(ins[2]) + ' ' + u(ins[3]) + ' ' + u(ins[0]) + ';justify-content:' + ({ ctr: 'center', b: 'flex-end' }[it.tx.anchor] || 'flex-start') + ';';
+        if (it.tx.wrap === false) ts += 'white-space:pre;';
+        if (it.tx.vert === 'vert' || it.tx.vert === 'eaVert') ts += 'writing-mode:vertical-rl;';
+        else if (it.tx.vert === 'vert270') ts += 'writing-mode:vertical-rl;transform:rotate(180deg);';
+        body += '<div class="ft" style="' + ts + '">' + parasHTML(it.tx.paras || [], String(i)) + '</div>';
+      }
+      return '<div class="fi" style="' + pos(it) + '">' + body + '</div>';
+    }).join('');
+    var bg = 'background:' + (L.bgImg && String(L.bgImg).indexOf('data:image/') === 0 ? 'url(' + L.bgImg + ') center/cover no-repeat' : cssColour(L.bg || { c: 'FFFFFF', a: 1 })) + ';';
+    var ratio = (W / H).toFixed(5);
+    return '<div class="flbox"><div class="fl" style="width:min(100cqw,calc(100cqh * ' + ratio + '));aspect-ratio:' + W + ' / ' + H + ';' + bg + '">' + out + '</div></div>';
+  }
+
+  /* Editing text on free-layout slides */
+  function flPara(L, addr) {
+    var a = String(addr).split('/').map(Number), it = L.items[a[0]];
+    if (!it) return null;
+    if (a.length === 2) return it.tx ? { list: it.tx.paras, i: a[1], item: a[0] } : null;
+    var cell = it.rows && it.rows[a[1]] && it.rows[a[1]].cells[a[2]];
+    return cell ? { list: cell.paras, i: a[3], item: a[0] } : null;
+  }
+  function readFreePara(el) {
+    var s = slide(), L = s.layout; if (!L) return;
+    var ref = flPara(L, el.getAttribute('data-a')); if (!ref) return;
+    var p = ref.list[ref.i]; if (!p) return;
+    var spans = [].slice.call(el.querySelectorAll('span[data-r]'));
+    var joined = spans.map(function (x) { return x.textContent; }).join('');
+    if (spans.length === p.runs.length && joined === el.textContent) spans.forEach(function (x, k) { p.runs[k].t = x.textContent; });
+    else {
+      /* The run structure changed while typing: keep the text in the first run's style */
+      var proto = p.runs[0] || { sz: p.esz || 18, c: { c: '000000', a: 1 } };
+      p.runs = [Object.assign({}, proto, { t: el.textContent })];
+    }
+    if (ref.item === L.ti) s.title = itemText(L.items[L.ti]);
+  }
+  function focusFree(addr, atEnd) {
+    var el = $('stage').querySelector('.fp[data-a="' + addr + '"]'); if (!el) return;
+    el.focus();
+    var r = document.createRange(); r.selectNodeContents(el); r.collapse(!atEnd ? true : false);
+    var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+  }
+  function freeKey(e) {
+    var el = e.target.closest && e.target.closest('.fp[data-a]'); if (!el) return false;
+    var L = slide().layout; if (!L) return false;
+    var addr = el.getAttribute('data-a'), ref = flPara(L, addr); if (!ref) return false;
+    var base = addr.slice(0, addr.lastIndexOf('/') + 1);
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      readFreePara(el);
+      var sel = window.getSelection(), p = ref.list[ref.i], text = el.textContent, cut = text.length;
+      if (sel.rangeCount && el.contains(sel.anchorNode)) {
+        var r = document.createRange(); r.selectNodeContents(el); r.setEnd(sel.anchorNode, sel.anchorOffset); cut = r.toString().length;
+      }
+      var proto = p.runs[0] || { sz: p.esz || 18, c: { c: '000000', a: 1 } };
+      var before = text.slice(0, cut), after = text.slice(cut);
+      if (p.runs.length > 1 && cut === text.length) { /* keep formatting when pressing Enter at the end */ }
+      else p.runs = [Object.assign({}, proto, { t: before })];
+      /* The new line keeps the style of the line it came from */
+      var np = JSON.parse(JSON.stringify(p)); np.runs = [Object.assign({}, proto, { t: after })]; np.esz = proto.sz;
+      ref.list.splice(ref.i + 1, 0, np);
+      renderStage(); queueSave(); focusFree(base + (ref.i + 1), false);
+      return true;
+    }
+    if (e.key === 'Backspace' && ref.i > 0) {
+      var sel2 = window.getSelection();
+      if (!sel2.isCollapsed || !sel2.rangeCount) return false;
+      var r2 = document.createRange(); r2.selectNodeContents(el); r2.setEnd(sel2.anchorNode, sel2.anchorOffset);
+      if (r2.toString().length !== 0) return false;
+      e.preventDefault();
+      readFreePara(el);
+      var prev = ref.list[ref.i - 1], cur = ref.list[ref.i];
+      prev.runs = prev.runs.concat(cur.runs.filter(function (x) { return x.t; }));
+      ref.list.splice(ref.i, 1);
+      renderStage(); queueSave(); focusFree(base + (ref.i - 1), true);
+      return true;
+    }
+    return false;
+  }
+
+  /* Tabs and editor */
+  function renderTabs() {
+    var bar = $('tabs'); bar.replaceChildren();
+    state.decks.forEach(function (d) {
+      var wrap = document.createElement('div');
+      wrap.className = 'tab-wrap' + (d.id === state.activeId ? ' active' : '');
+      var tab = document.createElement('button');
+      tab.type = 'button'; tab.setAttribute('role', 'tab'); tab.setAttribute('aria-selected', String(d.id === state.activeId));
+      tab.textContent = d.title || 'Untitled'; tab.title = d.title;
+      tab.onclick = function () { state.activeId = d.id; render(); queueSave(); };
+      var close = document.createElement('button');
+      close.type = 'button'; close.className = 'close'; close.textContent = '×'; close.setAttribute('aria-label', 'Close ' + d.title);
+      close.onclick = function () { closeDeck(d.id); };
+      wrap.append(tab, close); bar.append(wrap);
+    });
+    var add = document.createElement('div'); add.className = 'tab-wrap tab-add';
+    var plus = document.createElement('button'); plus.type = 'button'; plus.textContent = '+'; plus.title = 'New deck'; plus.setAttribute('aria-label', 'New deck');
+    plus.onclick = newDeckAction; add.append(plus); bar.append(add);
+  }
+  function renderSlides() {
+    var list = $('slidelist'), d = deck(); list.replaceChildren();
+    d.slides.forEach(function (s, i) {
+      var li = document.createElement('li'), b = document.createElement('button');
+      b.type = 'button'; b.className = 'slide-item' + (i === d.current ? ' current' : ''); b.setAttribute('aria-current', i === d.current ? 'true' : 'false');
+      var num = document.createElement('span'); num.className = 'num'; num.textContent = 'Slide ' + (i + 1);
+      var name = document.createElement('span'); name.className = 'name'; name.textContent = s.title || 'Untitled';
+      b.append(num, name);
+      b.onclick = function () { d.current = i; render(); queueSave(); };
+      li.append(b); list.append(li);
+    });
+    $('upslide').disabled = d.current === 0;
+    $('downslide').disabled = d.current === d.slides.length - 1;
+    $('delslide').disabled = d.slides.length === 1;
+  }
+  function renderStage() { var d = deck(), s = slide(); $('stage').classList.toggle('free', !!s.layout); $('stage').innerHTML = slideHTML(s, d, null, true); }
+  function renderEditor() {
+    var s = slide(), d = deck();
+    function put(id, v) { if (document.activeElement !== $(id)) $(id).value = v; }
+    put('snotes', s.notes || ''); put('dtitle', d.title);
+    put('theme', d.theme || 'slate');
+    $('chartkind').value = s.chart ? s.chart.type : 'none';
+    if (document.activeElement !== $('chartdata')) $('chartdata').value = s.chart ? chartRows(s.chart).map(function (r) { return r.label + ', ' + r.value; }).join('\n') : '';
+    $('chartbox').hidden = !s.chart;
+    var free = !!s.layout;
+    $('delpic').disabled = free || !s.image; $('addpic').disabled = free; $('chartkind').disabled = free;
+    $('stagehelp').textContent = free ? 'Slide opened from PowerPoint, with its layout. Click any text on the slide to change it; Enter starts a new line.' : 'Click the title or a point on the slide and type. Enter adds a point.';
+    $('dinfo').textContent = 'Slide ' + (d.current + 1) + ' of ' + d.slides.length + '  ·  ' + state.decks.length + (state.decks.length === 1 ? ' deck open' : ' decks open');
+    $('deckcount').textContent = state.decks.length + (state.decks.length === 1 ? ' deck' : ' decks');
+  }
+  function render() { clamp(deck()); renderTabs(); renderSlides(); renderEditor(); renderStage(); }
+  function newDeckAction() { var d = newDeck('New presentation'); state.decks.push(d); state.activeId = d.id; render(); writeStore(); focusTitle(); }
+  function closeDeck(id) {
+    var d = state.decks.find(function (x) { return x.id === id; }); if (!d) return;
+    if (!confirm('Close “' + d.title + '” and delete its draft from this browser?')) return;
+    state.decks = state.decks.filter(function (x) { return x.id !== id; });
+    if (!state.decks.length) state.decks.push(newDeck());
+    if (state.activeId === id) state.activeId = state.decks[0].id;
+    render(); writeStore();
+  }
+
+  /* Typing happens on the slide itself: title and points */
+  function focusTitle() {
+    var h = $('stage').querySelector('h2[contenteditable]');
+    if (!h) return;
+    h.focus();
+    var r = document.createRange(); r.selectNodeContents(h);
+    var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+  }
+  function readStage() {
+    var s = slide(), h = $('stage').querySelector('h2[contenteditable]');
+    if (h) s.title = h.textContent;
+    var lis = [].slice.call($('stage').querySelectorAll('.text li[contenteditable]'));
+    s.points = lis.map(function (li) { return li.textContent.replace(/\s+$/, ''); }).filter(function (t) { return t.trim() !== ''; });
+  }
+  function onStageEdit(e) {
+    if (slide().layout) { var el = e && e.target && e.target.closest ? e.target.closest('.fp[data-a]') : null; if (el) readFreePara(el); }
+    else readStage();
+    renderSlides(); renderTabs(); queueSave();
+  }
+  $('stage').addEventListener('input', onStageEdit);
+  $('stage').addEventListener('keydown', function (e) {
+    if (slide().layout) { freeKey(e); return; }
+    if (e.key !== 'Enter') return;
+    if (e.target.tagName === 'H2') {
+      e.preventDefault();
+      var first = $('stage').querySelector('.text li[contenteditable]');
+      if (first) first.focus();
+    } else if (e.target.tagName === 'LI' && e.target.isContentEditable) {
+      e.preventDefault();
+      var nl = document.createElement('li');
+      nl.setAttribute('contenteditable', 'true'); nl.setAttribute('spellcheck', 'true');
+      e.target.after(nl);
+      nl.focus();
+      onStageEdit();
+    }
+  });
+  $('stage').addEventListener('paste', function (e) {
+    var t = (e.clipboardData || window.clipboardData).getData('text/plain');
+    e.preventDefault();
+    document.execCommand('insertText', false, t.replace(/\r?\n/g, ' '));
+  });
+  $('snotes').addEventListener('input', function () { slide().notes = $('snotes').value; queueSave(); });
+  $('dtitle').addEventListener('input', function () { deck().title = $('dtitle').value.trim() ? $('dtitle').value : 'Untitled'; renderTabs(); queueSave(); });
+  $('theme').addEventListener('change', function () { deck().theme = $('theme').value; renderStage(); queueSave(); });
+  $('chartkind').addEventListener('change', function () {
+    var s = slide(), kind = $('chartkind').value;
+    if (kind === 'none') s.chart = null;
+    else s.chart = { type: kind, data: s.chart ? s.chart.data : [] };
+    renderEditor(); renderStage(); queueSave();
+  });
+  $('chartdata').addEventListener('input', function () {
+    var s = slide(); if (!s.chart) return;
+    var rows = $('chartdata').value.split('\n').map(function (line) {
+      var k = line.lastIndexOf(','); if (k < 0) return null;
+      var label = line.slice(0, k).trim(), value = Number(line.slice(k + 1).trim().replace(',', '.'));
+      return label && isFinite(value) ? { label: label, value: value } : null;
+    }).filter(Boolean);
+    s.chart.data = rows; renderStage(); queueSave();
+  });
+
+  $('addslide').onclick = function () { var d = deck(); d.slides.splice(d.current + 1, 0, newSlide()); d.current += 1; render(); queueSave(); focusTitle(); };
+  $('dupslide').onclick = function () { var d = deck(), copy = JSON.parse(JSON.stringify(slide())); copy.id = uid(); d.slides.splice(d.current + 1, 0, copy); d.current += 1; render(); queueSave(); };
+  $('delslide').onclick = function () {
+    var d = deck(); if (d.slides.length === 1) return;
+    if (!confirm('Delete this slide?')) return;
+    d.slides.splice(d.current, 1); clamp(d); render(); queueSave();
+  };
+  function move(delta) { var d = deck(), to = d.current + delta; if (to < 0 || to >= d.slides.length) return; var tmp = d.slides[d.current]; d.slides[d.current] = d.slides[to]; d.slides[to] = tmp; d.current = to; render(); queueSave(); }
+  $('upslide').onclick = function () { move(-1); };
+  $('downslide').onclick = function () { move(1); };
+  $('newdeck').onclick = newDeckAction;
+
+  /* Pictures: resized in the browser so the saved file stays small */
+  $('addpic').onclick = function () { $('imgin').value = ''; $('imgin').click(); };
+  $('delpic').onclick = function () { slide().image = null; renderEditor(); renderStage(); queueSave(); };
+  $('imgin').onchange = function () {
+    var f = $('imgin').files[0]; if (!f) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      var img = new Image();
+      img.onload = function () {
+        var max = 1600, k = Math.min(1, max / Math.max(img.width, img.height));
+        var c = document.createElement('canvas');
+        c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+        var g = c.getContext('2d'); g.fillStyle = '#ffffff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, 0, 0, c.width, c.height);
+        var url = c.toDataURL('image/jpeg', 0.85);
+        if (url.length > 900000) url = c.toDataURL('image/jpeg', 0.7);
+        slide().image = url; renderEditor(); renderStage(); queueSave();
+      };
+      img.onerror = function () { setStatus('This picture could not be read.', true); };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(f);
+  };
+
+  /* Files */
+  function download(name, data, type) {
+    var blob = data instanceof Blob ? data : new Blob([data], { type: type });
+    var url = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href = url; a.download = name; document.body.append(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 1000);
+  }
+  function safeName(t) { return (t || 'presentation').replace(/[<>:"/\\|?*\u0000-\u001f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80) || 'presentation'; }
+  /* Files: open and save .json (Tabbed Slides) and .pptx (PowerPoint).
+     Chrome and Edge save back into the same file; other browsers save to downloads. */
+  var PPTX_MIME = 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+  var FILE_TYPES = {
+    json: { description: 'Tabbed Slides deck', accept: { 'application/json': ['.json'] } },
+    pptx: { description: 'PowerPoint presentation', accept: {} }
+  };
+  FILE_TYPES.pptx.accept[PPTX_MIME] = ['.pptx'];
+  var handles = {}; /* deck id -> { handle, format }, for this visit only */
+  function fileName(d, format) { return safeName(d.title) + (format === 'pptx' ? '.pptx' : '.tabbed-slides.json'); }
+  function deckBlob(d, format) {
+    if (format === 'pptx') return buildPptx(d).write({ outputType: 'blob' });
+    return Promise.resolve(new Blob([JSON.stringify({ version: 1, deck: d }, null, 2)], { type: 'application/json;charset=utf-8' }));
+  }
+  /* asNew: always ask where to save (Save as). Must start inside the click, before any waiting. */
+  function saveDeck(format, asNew) {
+    var d = deck(); format = format || d.format || 'json';
+    if (format === 'pptx' && typeof window.PptxGenJS !== 'function') { alert('The PowerPoint library did not load. Check your connection once, then try again.'); return; }
+    var known = handles[d.id], target;
+    if (!asNew && known && known.format === format && known.handle.requestPermission) {
+      target = known.handle.requestPermission({ mode: 'readwrite' }).then(function (p) { return p === 'granted' ? known.handle : null; });
+    } else if (window.showSaveFilePicker) {
+      target = window.showSaveFilePicker({ suggestedName: fileName(d, format), types: [FILE_TYPES[format]] });
+    } else target = Promise.resolve(null);
+    setStatus(format === 'pptx' ? 'Building the PowerPoint file…' : 'Saving…', false);
+    Promise.all([target, deckBlob(d, format)]).then(function (res) {
+      var handle = res[0], blob = res[1];
+      d.format = format;
+      if (!handle) { writeStore(); download(fileName(d, format), blob); setStatus('File saved to your downloads', false); return; }
+      return handle.createWritable().then(function (w) { return w.write(blob).then(function () { return w.close(); }); }).then(function () {
+        handles[d.id] = { handle: handle, format: format };
+        d.fileName = handle.name; writeStore();
+        setStatus('Saved to ' + handle.name, false);
+      });
+    }).catch(function (e) {
+      if (e && e.name === 'AbortError') { setStatus('Save cancelled', false); return; }
+      setStatus('Could not save the file: ' + ((e && e.message) || 'unknown error'), true);
+    });
+  }
+  $('savedeck').onclick = function () { saveDeck(null, false); };
+  $('savepptx').onclick = function () { saveDeck('pptx', true); };
+
+  function openFile(f, handle) {
+    var isPptx = /\.pptx$/i.test(f.name);
+    setStatus('Opening ' + f.name + '…', false);
+    var job = isPptx ? f.arrayBuffer().then(function (buf) { return importPptx(buf, f.name); })
+      : f.text().then(function (text) {
+        var data = JSON.parse(text), d = data && data.deck;
+        if (!isDeck(d)) throw new Error('This file is not a Tabbed Slides deck.');
+        d.theme = d.theme || 'slate';
+        return { deck: d, note: '' };
+      });
+    job.then(function (r) {
+      var d = r.deck;
+      d.id = uid(); d.current = 0; d.format = isPptx ? 'pptx' : 'json'; d.fileName = f.name;
+      /* Saving over a PowerPoint file from another app would lose what Tabbed Slides cannot keep, so Save asks where to save first. */
+      if (handle && (!isPptx || r.ownFile)) handles[d.id] = { handle: handle, format: d.format };
+      state.decks.push(d); state.activeId = d.id; render(); writeStore();
+      setStatus('Opened ' + f.name + (r.note ? '. ' + r.note : ''), false);
+    }).catch(function (e) {
+      var msg = isPptx && !(e && e.tabbed) ? 'This file could not be read as a PowerPoint (.pptx) file.' : ((e && e.message) || 'unknown error');
+      setStatus('Could not open the file: ' + msg, true); alert('Could not open the file. ' + msg);
+    });
+  }
+  function openAction() {
+    if (window.showOpenFilePicker) {
+      window.showOpenFilePicker({ types: [{ description: 'Tabbed Slides or PowerPoint', accept: { 'application/json': ['.json'], 'application/vnd.openxmlformats-officedocument.presentationml.presentation': ['.pptx'] } }] })
+        .then(function (hs) { return hs[0].getFile().then(function (f) { openFile(f, hs[0]); }); })
+        .catch(function (e) { if (!e || e.name !== 'AbortError') setStatus('Could not open the file: ' + ((e && e.message) || 'unknown error'), true); });
+      return;
+    }
+    $('filein').value = ''; $('filein').click();
+  }
+  $('opendeck').onclick = openAction;
+  $('filein').onchange = function () { var f = $('filein').files[0]; if (f) openFile(f, null); };
+  document.addEventListener('keydown', function (e) {
+    if (!(e.ctrlKey || e.metaKey) || e.altKey || $('present').classList.contains('on')) return;
+    var k = e.key.toLowerCase();
+    if (k === 's') { e.preventDefault(); saveDeck(null, e.shiftKey); }
+    else if (k === 'o') { e.preventDefault(); openAction(); }
+  });
+
+  /* PowerPoint import helpers. JSZip comes with the PptxGenJS bundle. */
+  var NS_R = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+  function kids(node, name) { return node ? [].slice.call(node.getElementsByTagNameNS('*', name)) : []; }
+  function kid(node, name) { return kids(node, name)[0] || null; }
+  function child(node, name) { if (!node) return null; for (var c = node.firstElementChild; c; c = c.nextElementSibling) if (c.localName === name) return c; return null; }
+  function rid(node, name) { return node ? (node.getAttributeNS(NS_R, name) || '') : ''; }
+  function tidy(t) { return t.replace(/[\s ]+/g, ' ').trim(); }
+  function paraText(p, keepLines) {
+    var out = '';
+    (function walk(n) {
+      for (var c = n.firstElementChild; c; c = c.nextElementSibling) {
+        if (c.localName === 't') out += c.textContent;
+        else if (c.localName === 'br') out += '\n';
+        else if (c.localName === 'r' || c.localName === 'fld') walk(c);
+      }
+    })(p);
+    if (!keepLines) return tidy(out);
+    return out.split(/\r?\n/).map(function (l) { return l.replace(/[ \t\u00a0]+/g, ' ').trim(); }).join('\n').trim();
+  }
+  function shapeParas(sp) { return kids(child(sp, 'txBody'), 'p').map(paraText).filter(Boolean); }
+  /* Pictures from PowerPoint: crop as in the file, resize, keep transparency when there is any */
+  function pictureToDataURL(blob, crop) {
+    return new Promise(function (resolve) {
+      var url = URL.createObjectURL(blob), img = new Image();
+      img.onload = function () {
+        var c0 = crop || { l: 0, t: 0, r: 0, b: 0 };
+        var sx = img.width * c0.l, sy = img.height * c0.t, sw = img.width * (1 - c0.l - c0.r), sh = img.height * (1 - c0.t - c0.b);
+        if (!(sw > 1 && sh > 1)) { sx = 0; sy = 0; sw = img.width; sh = img.height; }
+        var k = Math.min(1, 1600 / Math.max(sw, sh)), c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(sw * k)); c.height = Math.max(1, Math.round(sh * k));
+        var g = c.getContext('2d'); g.drawImage(img, sx, sy, sw, sh, 0, 0, c.width, c.height);
+        var alpha = false;
+        if (blob.type !== 'image/jpeg') {
+          try { var px = g.getImageData(0, 0, c.width, c.height).data; for (var i = 3; i < px.length; i += 16) if (px[i] < 250) { alpha = true; break; } } catch (e) {}
+        }
+        var out;
+        if (alpha) out = c.toDataURL('image/png');
+        if (!out || out.length > 1200000) {
+          var c2 = document.createElement('canvas'); c2.width = c.width; c2.height = c.height;
+          var g2 = c2.getContext('2d'); g2.fillStyle = '#ffffff'; g2.fillRect(0, 0, c2.width, c2.height); g2.drawImage(c, 0, 0);
+          out = c2.toDataURL('image/jpeg', 0.86);
+          if (out.length > 900000) out = c2.toDataURL('image/jpeg', 0.7);
+        }
+        URL.revokeObjectURL(url); resolve(out);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); resolve(null); };
+      img.src = url;
+    });
+  }
+
+  /* PowerPoint import. Slides keep their layout: every text box, shape, line, picture,
+     table and chart stays where PowerPoint put it ("free layout"). Slides saved by
+     Tabbed Slides in its own title-and-points layout come back as such. */
+  var PRST_COLOURS = { black: '000000', white: 'FFFFFF', red: 'FF0000', green: '008000', blue: '0000FF', yellow: 'FFFF00', gray: '808080', grey: '808080', orange: 'FFA500', darkGray: 'A9A9A9', lightGray: 'D3D3D3' };
+  function importPptx(buf, name) {
+    var zip, parser = new DOMParser(), parts = {};
+    function fail(msg) { var e = new Error(msg); e.tabbed = true; throw e; }
+    if (typeof window.JSZip !== 'function') fail('The PowerPoint library did not load. Check your connection once, then try again.');
+    function xml(path) {
+      var f = zip.file(path); if (!f) return Promise.resolve(null);
+      return f.async('string').then(function (s) { var doc = parser.parseFromString(s.replace(/^\uFEFF/, ''), 'application/xml'); return doc.getElementsByTagName('parsererror').length ? null : doc; });
+    }
+    function resolve(from, target) {
+      if (target.charAt(0) === '/') return target.slice(1);
+      var bits = from.split('/'); bits.pop();
+      target.split('/').forEach(function (p) { if (p === '..') bits.pop(); else if (p && p !== '.') bits.push(p); });
+      return bits.join('/');
+    }
+    function rels(path) {
+      var i = path.lastIndexOf('/'), relPath = path.slice(0, i) + '/_rels/' + path.slice(i + 1) + '.rels';
+      return xml(relPath).then(function (doc) {
+        var map = {};
+        kids(doc, 'Relationship').forEach(function (r) {
+          if (r.getAttribute('TargetMode') === 'External') return;
+          map[r.getAttribute('Id')] = { path: resolve(path, r.getAttribute('Target') || ''), type: r.getAttribute('Type') || '' };
+        });
+        return map;
+      });
+    }
+    function part(path) {
+      if (!parts[path]) parts[path] = Promise.all([xml(path), rels(path)]).then(function (r) { return { path: path, doc: r[0], rel: r[1] }; });
+      return parts[path];
+    }
+    function relOf(p, re) { if (!p || !p.rel) return null; for (var k in p.rel) if (re.test(p.rel[k].type)) return p.rel[k]; return null; }
+    function num(el, attr, dflt) { if (!el || !el.hasAttribute(attr)) return dflt; var v = Number(el.getAttribute(attr)); return isFinite(v) ? v : dflt; }
+    function r2(v) { return Math.round(v * 100) / 100; }
+    function EMU(v) { return r2((Number(v) || 0) / 12700); } /* EMU to points */
+
+    /* Colours */
+    function hx(n) { n = Math.max(0, Math.min(255, Math.round(n))); return (n < 16 ? '0' : '') + n.toString(16).toUpperCase(); }
+    function rgbToHsl(r, g, b) {
+      r /= 255; g /= 255; b /= 255;
+      var mx = Math.max(r, g, b), mn = Math.min(r, g, b), h = 0, s = 0, l = (mx + mn) / 2;
+      if (mx !== mn) { var d = mx - mn; s = l > 0.5 ? d / (2 - mx - mn) : d / (mx + mn);
+        h = mx === r ? (g - b) / d + (g < b ? 6 : 0) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h /= 6; }
+      return [h, s, l];
+    }
+    function hslToRgb(h, s, l) {
+      if (!s) return [l * 255, l * 255, l * 255];
+      function f(p, q, t) { if (t < 0) t += 1; if (t > 1) t -= 1; if (t < 1 / 6) return p + (q - p) * 6 * t; if (t < 1 / 2) return q; if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6; return p; }
+      var q = l < 0.5 ? l * (1 + s) : l + s - l * s, p = 2 * l - q;
+      return [f(p, q, h + 1 / 3) * 255, f(p, q, h) * 255, f(p, q, h - 1 / 3) * 255];
+    }
+    /* Tints and shades work in linear light */
+    function toLin(c) { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
+    function toS(l) { l = Math.max(0, Math.min(1, l)); return 255 * (l <= 0.0031308 ? l * 12.92 : 1.055 * Math.pow(l, 1 / 2.4) - 0.055); }
+    function colourEl(el, ctx) {
+      if (!el) return null;
+      var n = el.localName, v = el.getAttribute('val') || '', hex = null;
+      if (n === 'srgbClr') hex = v;
+      else if (n === 'schemeClr') { if (v === 'phClr' && ctx.phClr) hex = ctx.phClr.c; else hex = ctx.scheme[ctx.clrMap[v] || v]; }
+      else if (n === 'sysClr') hex = el.getAttribute('lastClr') || (v === 'window' ? 'FFFFFF' : '000000');
+      else if (n === 'prstClr') hex = PRST_COLOURS[v] || '000000';
+      else if (n === 'scrgbClr') hex = ['r', 'g', 'b'].map(function (k) { return hx(num(el, k, 0) / 100000 * 255); }).join('');
+      else if (n === 'hslClr') { var c0 = hslToRgb(num(el, 'hue', 0) / 21600000, num(el, 'sat', 0) / 100000, num(el, 'lum', 0) / 100000); hex = c0.map(hx).join(''); }
+      else return null;
+      if (!/^[0-9A-Fa-f]{6}$/.test(hex || '')) hex = '000000';
+      var rgb = [parseInt(hex.slice(0, 2), 16), parseInt(hex.slice(2, 4), 16), parseInt(hex.slice(4, 6), 16)], a = 1;
+      for (var m = el.firstElementChild; m; m = m.nextElementSibling) {
+        var val = num(m, 'val', 100000) / 100000, hsl;
+        if (m.localName === 'lumMod' || m.localName === 'lumOff' || m.localName === 'satMod') {
+          hsl = rgbToHsl(rgb[0], rgb[1], rgb[2]);
+          if (m.localName === 'lumMod') hsl[2] *= val; else if (m.localName === 'lumOff') hsl[2] += val; else hsl[1] *= val;
+          hsl[1] = Math.max(0, Math.min(1, hsl[1])); hsl[2] = Math.max(0, Math.min(1, hsl[2]));
+          rgb = hslToRgb(hsl[0], hsl[1], hsl[2]);
+        } else if (m.localName === 'tint') rgb = rgb.map(function (c) { return toS(toLin(c) * val + (1 - val)); });
+        else if (m.localName === 'shade') rgb = rgb.map(function (c) { return toS(toLin(c) * val); });
+        else if (m.localName === 'alpha') a = val;
+      }
+      return { c: rgb.map(hx).join(''), a: r2(a) };
+    }
+    function firstColour(holder, ctx) { for (var c = holder && holder.firstElementChild; c; c = c.nextElementSibling) { var col = colourEl(c, ctx); if (col) return col; } return null; }
+    /* A fill: undefined = not set here, null = no fill, {c,a} = colour, {img} = picture path */
+    function fillOf(spPr, ctx, p) {
+      if (!spPr) return undefined;
+      for (var c = spPr.firstElementChild; c; c = c.nextElementSibling) {
+        if (c.localName === 'noFill') return null;
+        if (c.localName === 'solidFill') return firstColour(c, ctx);
+        if (c.localName === 'gradFill') { var gs = kid(c, 'gs'); return gs ? firstColour(gs, ctx) : null; }
+        if (c.localName === 'pattFill') return firstColour(child(c, 'fgClr'), ctx);
+        if (c.localName === 'blipFill') { var id = rid(kid(c, 'blip'), 'embed'); return id && p && p.rel[id] ? { img: p.rel[id].path, crop: cropOf(c) } : null; }
+        if (c.localName === 'grpFill') return ctx.grpFill === undefined ? null : ctx.grpFill;
+      }
+      return undefined;
+    }
+    function cropOf(blipFill) {
+      var s = child(blipFill, 'srcRect'); if (!s) return null;
+      return { l: num(s, 'l', 0) / 100000, t: num(s, 't', 0) / 100000, r: num(s, 'r', 0) / 100000, b: num(s, 'b', 0) / 100000 };
+    }
+    function lineOf(ln, ctx) {
+      /* undefined = not set, null = none */
+      if (!ln) return undefined;
+      var out = {}, set = false;
+      for (var c = ln.firstElementChild; c; c = c.nextElementSibling) {
+        if (c.localName === 'noFill') return null;
+        if (c.localName === 'solidFill') { var col = firstColour(c, ctx); if (col) { out.c = col; set = true; } }
+        if (c.localName === 'gradFill') { var gs = kid(c, 'gs'); if (gs) { out.c = firstColour(gs, ctx); set = true; } }
+        if (c.localName === 'prstDash') out.dash = c.getAttribute('val') || 'solid';
+      }
+      if (ln.hasAttribute('w')) out.w = EMU(ln.getAttribute('w'));
+      return set ? out : (out.w !== undefined || out.dash ? out : undefined);
+    }
+
+    /* Text styles: lstStyle levels, paragraph and run properties */
+    function mergeR(acc, el, ctx) {
+      if (!el) return acc;
+      var o = Object.assign({}, acc);
+      if (el.hasAttribute('sz')) o.sz = num(el, 'sz', 1800) / 100;
+      if (el.hasAttribute('b')) o.b = /^(1|true)$/.test(el.getAttribute('b'));
+      if (el.hasAttribute('i')) o.i = /^(1|true)$/.test(el.getAttribute('i'));
+      if (el.hasAttribute('u')) o.u = el.getAttribute('u') !== 'none';
+      if (el.hasAttribute('baseline')) o.base = num(el, 'baseline', 0) / 1000;
+      if (el.hasAttribute('cap')) o.cap = el.getAttribute('cap');
+      for (var c = el.firstElementChild; c; c = c.nextElementSibling) {
+        if (c.localName === 'solidFill') { var col = firstColour(c, ctx); if (col) o.c = col; }
+        else if (c.localName === 'latin') { var f = c.getAttribute('typeface') || ''; if (f) o.f = f === '+mj-lt' ? ctx.fonts.major : f === '+mn-lt' ? ctx.fonts.minor : f; }
+      }
+      return o;
+    }
+    function mergeP(acc, el, ctx) {
+      if (!el) return acc;
+      var o = Object.assign({}, acc);
+      if (el.hasAttribute('algn')) o.al = el.getAttribute('algn');
+      if (el.hasAttribute('marL')) o.marL = EMU(el.getAttribute('marL'));
+      if (el.hasAttribute('indent')) o.ind = EMU(el.getAttribute('indent'));
+      for (var c = el.firstElementChild; c; c = c.nextElementSibling) {
+        var n = c.localName;
+        if (n === 'lnSpc' || n === 'spcBef' || n === 'spcAft') {
+          var pct = child(c, 'spcPct'), pts = child(c, 'spcPts'), key = n === 'lnSpc' ? 'ln' : n === 'spcBef' ? 'spcB' : 'spcA';
+          if (pct) { o[key] = num(pct, 'val', 100000) / 1000; o[key + 'U'] = '%'; }
+          else if (pts) { o[key] = num(pts, 'val', 0) / 100; o[key + 'U'] = 'pt'; }
+        } else if (n === 'buNone') o.bu = null;
+        else if (n === 'buChar') o.bu = { ch: c.getAttribute('char') || '•' };
+        else if (n === 'buAutoNum') o.bu = { num: c.getAttribute('type') || 'arabicPeriod', start: num(c, 'startAt', 1) };
+        else if (n === 'buClr') o.buC = firstColour(c, ctx);
+        else if (n === 'buFont') o.buF = c.getAttribute('typeface') || '';
+        else if (n === 'defRPr') o.run = mergeR(o.run, c, ctx);
+      }
+      return o;
+    }
+    function applyLst(acc, lst, lvl, ctx) {
+      if (!lst) return acc;
+      acc = mergeP(acc, child(lst, 'defPPr'), ctx);
+      return mergeP(acc, child(lst, 'lvl' + (lvl + 1) + 'pPr'), ctx);
+    }
+    function bodyOf(chain) {
+      var b = { ins: [7.2, 3.6, 7.2, 3.6], anchor: 't', wrap: true, scale: 1, lnRed: 0 };
+      chain.forEach(function (bp) {
+        if (!bp) return;
+        ['lIns', 'tIns', 'rIns', 'bIns'].forEach(function (k, i) { if (bp.hasAttribute(k)) b.ins[i] = EMU(bp.getAttribute(k)); });
+        if (bp.hasAttribute('anchor')) b.anchor = bp.getAttribute('anchor');
+        if (bp.hasAttribute('wrap')) b.wrap = bp.getAttribute('wrap') !== 'none';
+        if (bp.hasAttribute('vert')) b.vert = bp.getAttribute('vert');
+        var na = child(bp, 'normAutofit');
+        if (na) { b.scale = num(na, 'fontScale', 100000) / 100000; b.lnRed = num(na, 'lnSpcReduction', 0) / 1000; }
+        else if (child(bp, 'noAutofit') || child(bp, 'spAutoFit')) { b.scale = 1; b.lnRed = 0; }
+      });
+      return b;
+    }
+    /* Paragraphs of a txBody, given the chain of lstStyle elements (lowest priority first) */
+    function parasOf(txBody, lstChain, base, scale, lnRed, ctx, over) {
+      var out = [];
+      kids(txBody, 'p').forEach(function (p) {
+        if (p.parentNode !== txBody) return;
+        var pPr = child(p, 'pPr'), lvl = num(pPr, 'lvl', 0), pp = Object.assign({}, base, { run: Object.assign({}, base.run) });
+        lstChain.forEach(function (lst, i) { pp = applyLst(pp, lst, lvl, ctx); if (i === 0 && over) pp.run = Object.assign({}, pp.run, over); });
+        pp = mergeP(pp, pPr, ctx);
+        var runs = [];
+        for (var c = p.firstElementChild; c; c = c.nextElementSibling) {
+          if (c.localName === 'r' || c.localName === 'fld') {
+            var t = child(c, 't'), rp = mergeR(pp.run, child(c, 'rPr'), ctx), text = t ? t.textContent : '';
+            if (rp.cap === 'all') text = text.toUpperCase();
+            runs.push(runOut(rp, text, scale));
+          } else if (c.localName === 'br') {
+            if (runs.length) runs[runs.length - 1].t += '\n';
+            else runs.push(runOut(mergeR(pp.run, child(c, 'rPr'), ctx), '\n', scale));
+          }
+        }
+        var end = mergeR(pp.run, child(p, 'endParaRPr'), ctx);
+        var para = { al: pp.al || 'l', marL: pp.marL || 0, ind: pp.ind || 0, runs: runs, esz: r2(end.sz * scale) };
+        var ln = pp.lnU === 'pt' ? null : (pp.ln === undefined ? 100 : pp.ln) - lnRed;
+        if (pp.lnU === 'pt') para.lnPt = r2(pp.ln * scale); else if (ln !== 100) para.ln = r2(ln);
+        if (pp.spcB) para[pp.spcBU === '%' ? 'spcBPct' : 'spcB'] = r2(pp.spcB);
+        if (pp.spcA) para[pp.spcAU === '%' ? 'spcAPct' : 'spcA'] = r2(pp.spcA);
+        if (pp.bu && runs.some(function (r) { return r.t.trim(); })) { para.bu = pp.bu.ch ? { ch: pp.bu.ch } : { num: pp.bu.num, start: pp.bu.start }; if (pp.buC) para.bu.c = pp.buC; if (pp.buF && /wingdings|symbol/i.test(pp.buF)) para.bu.f = pp.buF; }
+        out.push(para);
+      });
+      return out;
+    }
+    function runOut(rp, text, scale) {
+      var r = { t: text, sz: r2((rp.sz || 18) * scale), c: rp.c || { c: '000000', a: 1 } };
+      if (rp.b) r.b = 1; if (rp.i) r.i = 1; if (rp.u) r.u = 1; if (rp.f) r.f = rp.f; if (rp.base) r.base = rp.base;
+      return r;
+    }
+
+    /* Placeholders: position and style come from the layout and the master */
+    function phOf(node) {
+      var nv = child(node, 'nvSpPr') || child(node, 'nvPicPr') || child(node, 'nvGraphicFramePr') || child(node, 'nvCxnSpPr');
+      var ph = kid(child(nv, 'nvPr'), 'ph'); if (!ph) return null;
+      var type = ph.getAttribute('type') || 'obj';
+      return { type: type, norm: type === 'ctrTitle' || type === 'title' ? 'title' : (type === 'obj' || type === 'body' || type === 'subTitle') ? 'body' : type, idx: ph.getAttribute('idx') };
+    }
+    function findPh(p, info, byIdx) {
+      if (!p || !p.doc || !info) return null;
+      var all = kids(kid(p.doc, 'spTree'), 'sp').filter(function (n) { return phOf(n); }), hit = null;
+      if (byIdx && info.idx !== null) hit = all.find(function (n) { return phOf(n).idx === info.idx; });
+      if (!hit) hit = all.find(function (n) { return phOf(n).type === info.type; });
+      if (!hit) hit = all.find(function (n) { return phOf(n).norm === info.norm; });
+      return hit || null;
+    }
+
+    /* Context for one slide: layout, master, theme colours and fonts */
+    var presDefaults = null;
+    function contextFor(slidePart) {
+      var layoutRel = relOf(slidePart, /\/slideLayout$/);
+      return part(layoutRel ? layoutRel.path : '').then(function (layout) {
+        var masterRel = relOf(layout, /\/slideMaster$/);
+        return part(masterRel ? masterRel.path : '').then(function (master) {
+          var themeRel = relOf(master, /\/theme$/);
+          return part(themeRel ? themeRel.path : '').then(function (theme) {
+            var ctx = { slide: slidePart, layout: layout.doc ? layout : null, master: master.doc ? master : null, scheme: {}, clrMap: {}, fonts: { major: 'Calibri Light', minor: 'Calibri' } };
+            var cs = kid(theme.doc, 'clrScheme');
+            for (var c = cs && cs.firstElementChild; c; c = c.nextElementSibling) {
+              var e = c.firstElementChild; if (!e) continue;
+              ctx.scheme[c.localName] = e.localName === 'sysClr' ? (e.getAttribute('lastClr') || '000000') : (e.getAttribute('val') || '000000');
+            }
+            var mj = kid(kid(theme.doc, 'majorFont'), 'latin'), mn = kid(kid(theme.doc, 'minorFont'), 'latin');
+            if (mj && mj.getAttribute('typeface')) ctx.fonts.major = mj.getAttribute('typeface');
+            if (mn && mn.getAttribute('typeface')) ctx.fonts.minor = mn.getAttribute('typeface');
+            var map = kid(master.doc, 'clrMap');
+            ctx.clrMap = { bg1: 'lt1', tx1: 'dk1', bg2: 'lt2', tx2: 'dk2' };
+            if (map) [].forEach.call(map.attributes, function (a) { ctx.clrMap[a.localName] = a.value; });
+            var ovr = kid(kid(slidePart.doc, 'clrMapOvr'), 'overrideClrMapping');
+            if (ovr) [].forEach.call(ovr.attributes, function (a) { ctx.clrMap[a.localName] = a.value; });
+            ctx.lnStyles = kids(kid(theme.doc, 'lnStyleLst'), 'ln');
+            ctx.txStyles = kid(master.doc, 'txStyles');
+            return ctx;
+          });
+        });
+      });
+    }
+
+    /* Background of the slide, else its layout, else its master */
+    function backgroundOf(ctx) {
+      var chain = [ctx.slide, ctx.layout, ctx.master];
+      for (var i = 0; i < chain.length; i++) {
+        var p = chain[i]; if (!p || !p.doc) continue;
+        var bg = kid(child(p.doc.documentElement, 'cSld'), 'bg'); if (!bg) continue;
+        var bgPr = child(bg, 'bgPr'), ref = child(bg, 'bgRef');
+        if (bgPr) {
+          var f = fillOf(bgPr, ctx, p);
+          if (f && f.img) return { img: f.img };
+          if (f) return { c: f };
+          if (f === null) return null;
+        } else if (ref) { var col = firstColour(ref, ctx); if (col) return { c: col }; }
+      }
+      return null;
+    }
+
+    /* All visible items of one slide, in drawing order */
+    function collectItems(ctx) {
+      var items = [], jobs = [], skipped = { charts: 0, other: 0 };
+      var sld = ctx.slide.doc.documentElement, lay = ctx.layout && ctx.layout.doc.documentElement;
+      var showMaster = sld.getAttribute('showMasterSp') !== '0', showLayoutMaster = !lay || lay.getAttribute('showMasterSp') !== '0';
+      var sources = [];
+      if (showMaster && showLayoutMaster && ctx.master) sources.push({ p: ctx.master, template: true });
+      if (showMaster && ctx.layout) sources.push({ p: ctx.layout, template: true });
+      sources.push({ p: ctx.slide, template: false });
+      var ident = function (x, y, w, h) { return [x, y, w, h]; };
+      sources.forEach(function (src) { walk(kid(src.p.doc, 'spTree'), src.p, ident, src.template); });
+
+      function box(xfrm, map) {
+        var off = child(xfrm, 'off'), ext = child(xfrm, 'ext'); if (!off || !ext) return null;
+        var b = map(num(off, 'x', 0), num(off, 'y', 0), num(ext, 'cx', 0), num(ext, 'cy', 0));
+        var o = { x: EMU(b[0]), y: EMU(b[1]), w: EMU(b[2]), h: EMU(b[3]) };
+        var rot = num(xfrm, 'rot', 0) / 60000; if (rot) o.rot = r2(rot);
+        if (xfrm.getAttribute('flipH') === '1') o.fh = 1;
+        if (xfrm.getAttribute('flipV') === '1') o.fv = 1;
+        return o;
+      }
+      function styleRef(node, name) { return kid(child(node, 'style'), name); }
+      function walk(tree, p, map, template) {
+        for (var c = tree && tree.firstElementChild; c; c = c.nextElementSibling) {
+          var n = c.localName;
+          if (n === 'AlternateContent') { var fb = child(c, 'Fallback') || child(c, 'Choice'); if (fb) walk(fb, p, map, template); continue; }
+          if (n === 'grpSp') {
+            var gx = child(child(c, 'grpSpPr'), 'xfrm'), inner = map;
+            if (gx && child(gx, 'off') && child(gx, 'chOff')) {
+              var off = child(gx, 'off'), ext = child(gx, 'ext'), cho = child(gx, 'chOff'), che = child(gx, 'chExt');
+              var ox = num(off, 'x', 0), oy = num(off, 'y', 0), cx0 = num(cho, 'x', 0), cy0 = num(cho, 'y', 0);
+              var kx = num(che, 'cx', 0) ? num(ext, 'cx', 0) / num(che, 'cx', 1) : 1, ky = num(che, 'cy', 0) ? num(ext, 'cy', 0) / num(che, 'cy', 1) : 1;
+              inner = (function (outer) { return function (x, y, w, h) { return outer(ox + (x - cx0) * kx, oy + (y - cy0) * ky, w * kx, h * ky); }; })(map);
+            }
+            var saved = ctx.grpFill; ctx.grpFill = fillOf(child(c, 'grpSpPr'), ctx, p);
+            walk(c, p, inner, template);
+            ctx.grpFill = saved;
+            continue;
+          }
+          var info = phOf(c);
+          if (template && info) continue; /* placeholders on layouts and masters are not drawn */
+          if (n === 'sp' || n === 'cxnSp') addShape(c, p, map, info);
+          else if (n === 'pic') addPicture(c, p, map, info);
+          else if (n === 'graphicFrame') addFrame(c, p, map);
+          else if (n === 'contentPart') skipped.other++;
+        }
+      }
+      function inherited(info) {
+        if (!info) return { lay: null, mas: null };
+        return { lay: findPh(ctx.layout, info, true), mas: findPh(ctx.master, info, false) };
+      }
+      function addShape(sp, p, map, info) {
+        var spPr = child(sp, 'spPr'), inh = inherited(info);
+        var xfrm = child(spPr, 'xfrm') || child(child(inh.lay, 'spPr'), 'xfrm') || child(child(inh.mas, 'spPr'), 'xfrm');
+        if (!xfrm) return;
+        var it = box(xfrm, map); if (!it) return;
+        var geomEl = child(spPr, 'prstGeom') || child(child(inh.lay, 'spPr'), 'prstGeom') || child(child(inh.mas, 'spPr'), 'prstGeom');
+        var geom = geomEl ? (geomEl.getAttribute('prst') || 'rect') : 'rect';
+        var isLine = sp.localName === 'cxnSp' || /^(line|straightConnector1|bentConnector\d|curvedConnector\d)$/.test(geom);
+        /* Fill and outline: shape, then layout/master placeholder, then the shape's theme style */
+        var fill = fillOf(spPr, ctx, p);
+        if (fill === undefined && inh.lay) fill = fillOf(child(inh.lay, 'spPr'), ctx, ctx.layout);
+        if (fill === undefined && inh.mas) fill = fillOf(child(inh.mas, 'spPr'), ctx, ctx.master);
+        if (fill === undefined) { var fr = styleRef(sp, 'fillRef'); fill = fr && num(fr, 'idx', 0) > 0 ? firstColour(fr, ctx) : null; }
+        var ln = lineOf(child(spPr, 'ln'), ctx), lr = styleRef(sp, 'lnRef');
+        if (ln === undefined || (ln && !ln.c)) {
+          if (lr && num(lr, 'idx', 0) > 0) {
+            var base = { c: firstColour(lr, ctx), w: EMU(num(ctx.lnStyles[num(lr, 'idx', 1) - 1], 'w', 9525)) };
+            ln = Object.assign(base, ln || {});
+          } else if (ln && !ln.c) ln = null;
+          else if (ln === undefined) ln = null;
+        }
+        if (ln && ln.c && ln.w === undefined) ln.w = 0.75;
+        if (ln && (!ln.c || !(ln.w > 0))) ln = null;
+        if (isLine) {
+          if (!ln) return;
+          it.k = 'ln'; it.line = ln;
+          var he = child(child(spPr, 'ln'), 'headEnd'), te = child(child(spPr, 'ln'), 'tailEnd');
+          if (he && he.getAttribute('type') && he.getAttribute('type') !== 'none') it.head = 1;
+          if (te && te.getAttribute('type') && te.getAttribute('type') !== 'none') it.tail = 1;
+          items.push(it); return;
+        }
+        it.k = 'sp'; it.geom = geom;
+        if (geomEl) { var gd = kid(geomEl, 'gd'); if (gd && /^val /.test(gd.getAttribute('fmla') || '')) it.adj = Number(gd.getAttribute('fmla').slice(4)) / 100000; }
+        if (fill && fill.img) { it.fillImg = fill.img; it.crop = fill.crop; fill = null; }
+        if (fill) it.fill = fill;
+        if (ln) it.line = ln;
+        var tx = child(sp, 'txBody');
+        if (tx) {
+          var bp = bodyOf([kid(inh.mas, 'bodyPr'), kid(inh.lay, 'bodyPr'), child(tx, 'bodyPr')]);
+          var baseRun = { sz: 18, c: { c: ctx.scheme[ctx.clrMap.tx1 || 'dk1'] || '000000', a: 1 }, f: ctx.fonts.minor };
+          var styleRoot = !info ? (presDefaults || child(ctx.txStyles, 'otherStyle')) : info.norm === 'title' ? child(ctx.txStyles, 'titleStyle') : info.norm === 'body' ? child(ctx.txStyles, 'bodyStyle') : child(ctx.txStyles, 'otherStyle');
+          /* A shape's theme font reference (white text on a filled shape, for example) wins over the deck defaults */
+          var fontRef = styleRef(sp, 'fontRef'), over = null;
+          if (fontRef) { over = { f: fontRef.getAttribute('idx') === 'major' ? ctx.fonts.major : ctx.fonts.minor }; var fc = firstColour(fontRef, ctx); if (fc) over.c = fc; }
+          var chain = [styleRoot, kid(child(inh.mas, 'txBody'), 'lstStyle'), kid(child(inh.lay, 'txBody'), 'lstStyle'), child(tx, 'lstStyle')];
+          var paras = parasOf(tx, chain, { run: baseRun }, bp.scale, bp.lnRed, ctx, over);
+          var hasText = paras.some(function (pa) { return pa.runs.some(function (r) { return r.t.trim(); }); });
+          if (hasText || info) it.tx = { anchor: bp.anchor, ins: bp.ins, wrap: bp.wrap, paras: paras.length ? paras : [{ al: 'l', marL: 0, ind: 0, runs: [], esz: 18 }] };
+          if (bp.vert && bp.vert !== 'horz') it.tx.vert = bp.vert;
+        }
+        if (info) it.ph = info.norm;
+        if (!it.fill && !it.line && !it.tx && !it.fillImg) return;
+        items.push(it);
+        if (it.fillImg) { var src = it.fillImg; delete it.fillImg; queuePicture(it, src, it.crop, 'bg'); delete it.crop; }
+      }
+      function addPicture(pic, p, map, info) {
+        var spPr = child(pic, 'spPr'), inh = inherited(info);
+        var xfrm = child(spPr, 'xfrm') || child(child(inh.lay, 'spPr'), 'xfrm') || child(child(inh.mas, 'spPr'), 'xfrm');
+        var it = xfrm && box(xfrm, map); if (!it) return;
+        var bf = child(pic, 'blipFill'), id = rid(kid(bf, 'blip'), 'embed');
+        if (!id || !p.rel[id]) { skipped.other++; return; }
+        it.k = 'pic';
+        var geomEl = child(spPr, 'prstGeom'); if (geomEl && geomEl.getAttribute('prst') === 'ellipse') it.geom = 'ellipse';
+        var ln = lineOf(child(spPr, 'ln'), ctx); if (ln && ln.c && ln.w > 0) it.line = ln;
+        items.push(it);
+        queuePicture(it, p.rel[id].path, cropOf(bf), 'src');
+      }
+      function queuePicture(it, path, crop, key) {
+        var ext = (path.split('.').pop() || '').toLowerCase();
+        if (!/^(png|jpe?g|gif|bmp|webp|svg)$/.test(ext) || !zip.file(path)) { skipped.other++; it.missing = 1; return; }
+        var mime = ext === 'svg' ? 'image/svg+xml' : 'image/' + (ext === 'jpg' ? 'jpeg' : ext);
+        jobs.push(zip.file(path).async('arraybuffer').then(function (ab) { return pictureToDataURL(new Blob([ab], { type: mime }), crop); })
+          .then(function (u) { if (u) it[key] = u; else { skipped.other++; it.missing = 1; } }));
+      }
+      function addFrame(gf, p, map) {
+        var it = box(child(gf, 'xfrm'), map); if (!it) return;
+        var gd = kid(gf, 'graphicData'), uri = gd ? gd.getAttribute('uri') || '' : '';
+        var tbl = kid(gd, 'tbl'), ch = kid(gd, 'chart');
+        if (tbl) {
+          it.k = 'tbl';
+          it.cols = kids(child(tbl, 'tblGrid'), 'gridCol').map(function (g) { return EMU(g.getAttribute('w')); });
+          var tableRoot = presDefaults, tblPr = child(tbl, 'tblPr'), flag = function (k) { return tblPr && /^(1|true)$/.test(tblPr.getAttribute(k) || ''); };
+          var ts = tableStyle((kid(tblPr, 'tableStyleId') || {}).textContent || (tableStylesDoc && tableStylesDoc.documentElement.getAttribute('def')) || '');
+          var part = function (n) { return ts ? tsPart(child(ts, n), ctx) : null; };
+          var P = { whole: part('wholeTbl'), b1h: part('band1H'), b2h: part('band2H'), b1v: part('band1V'), b2v: part('band2V'), fr: part('firstRow'), lr: part('lastRow'), fc: part('firstCol'), lc: part('lastCol') };
+          var trs = kids(tbl, 'tr').filter(function (tr) { return tr.parentNode === tbl; }), nRows = trs.length, nCols = it.cols.length;
+          it.rows = trs.map(function (tr, ri) {
+            return { h: EMU(tr.getAttribute('h')), cells: kids(tr, 'tc').filter(function (tc) { return tc.parentNode === tr; }).map(function (tc, ci) {
+              /* Table style parts, lowest priority first */
+              var parts = [P.whole], dataRow = ri - (flag('firstRow') ? 1 : 0), dataCol = ci - (flag('firstCol') ? 1 : 0);
+              if (flag('bandRow') && dataRow >= 0) parts.push(dataRow % 2 === 0 ? P.b1h : P.b2h);
+              if (flag('bandCol') && dataCol >= 0) parts.push(dataCol % 2 === 0 ? P.b1v : P.b2v);
+              if (flag('firstCol') && ci === 0) parts.push(P.fc);
+              if (flag('lastCol') && ci === nCols - 1) parts.push(P.lc);
+              if (flag('lastRow') && ri === nRows - 1) parts.push(P.lr);
+              if (flag('firstRow') && ri === 0) parts.push(P.fr);
+              var sty = { bd: {} };
+              parts.forEach(function (pt) { if (!pt) return; if (pt.fill !== undefined) sty.fill = pt.fill; if (pt.c) sty.c = pt.c; if (pt.b !== undefined) sty.b = pt.b; if (pt.bd) Object.assign(sty.bd, pt.bd); });
+              var cell = {}, pr = child(tc, 'tcPr'), txb = child(tc, 'txBody');
+              if (sty.fill && sty.fill.c) cell.fill = sty.fill;
+              var edge = { lnL: ci === 0 ? 'left' : 'insideV', lnR: ci === nCols - 1 ? 'right' : 'insideV', lnT: ri === 0 ? 'top' : 'insideH', lnB: ri === nRows - 1 ? 'bottom' : 'insideH' };
+              var styleBd = {}; Object.keys(edge).forEach(function (k) { var l = sty.bd[edge[k]]; if (l && l.c) styleBd[k] = l; });
+              if (tc.getAttribute('hMerge') === '1' || tc.getAttribute('vMerge') === '1') cell.merged = 1;
+              if (tc.hasAttribute('gridSpan')) cell.span = num(tc, 'gridSpan', 1);
+              if (tc.hasAttribute('rowSpan')) cell.rspan = num(tc, 'rowSpan', 1);
+              var f = fillOf(pr, ctx, p); if (f && f.c) cell.fill = f; else if (f === null) delete cell.fill;
+              if (pr && pr.getAttribute('anchor')) cell.anchor = pr.getAttribute('anchor');
+              cell.ins = [EMU(num(pr, 'marL', 91440)), EMU(num(pr, 'marT', 45720)), EMU(num(pr, 'marR', 91440)), EMU(num(pr, 'marB', 45720))];
+              var borders = styleBd;
+              ['lnL', 'lnT', 'lnR', 'lnB'].forEach(function (k) { var l = lineOf(child(pr, k), ctx); if (l === null) delete borders[k]; else if (l && l.c && l.w > 0) borders[k] = l; });
+              cell.bd = borders;
+              var over = null; if (sty.c || sty.b) { over = {}; if (sty.c) over.c = sty.c; if (sty.b) over.b = true; }
+              cell.paras = txb ? parasOf(txb, [tableRoot, child(txb, 'lstStyle')], { run: { sz: 18, c: { c: ctx.scheme[ctx.clrMap.tx1 || 'dk1'] || '000000', a: 1 }, f: ctx.fonts.minor } }, 1, 0, ctx, over) : [];
+              if (!cell.paras.length) cell.paras = [{ al: 'l', marL: 0, ind: 0, runs: [], esz: 18 }];
+              return cell;
+            }) };
+          });
+          items.push(it);
+        } else if (ch) {
+          var target = p.rel[rid(ch, 'id')];
+          if (!target) { skipped.charts++; return; }
+          it.k = 'chart'; items.push(it);
+          jobs.push(xml(target.path).then(function (cd) {
+            var c = chartFrom(cd); if (!c) { it.missing = 1; skipped.charts++; return; }
+            var ser = kid(cd, 'ser'), sp = child(ser, 'spPr');
+            c.c = firstColour(child(sp, 'solidFill'), ctx) || { c: ctx.scheme.accent1 || '4472C4', a: 1 };
+            var tEl = kid(cd, 'title'), atd = kid(cd, 'autoTitleDeleted'), sname = kid(child(ser, 'tx'), 'v');
+            var ttl = tEl ? kids(tEl, 't').map(function (t) { return t.textContent; }).join('') : '';
+            if (tEl && !ttl && sname) ttl = sname.textContent;
+            if (!tEl && !(atd && /^(1|true)$/.test(atd.getAttribute('val') || '')) && kids(cd, 'ser').length === 1 && sname) ttl = sname.textContent;
+            if (ttl) c.title = tidy(ttl);
+            var txPr = child(cd.documentElement, 'txPr'), dr = kid(txPr, 'defRPr'); if (dr && dr.getAttribute('sz')) c.fs = Number(dr.getAttribute('sz')) / 100;
+            it.chart = c;
+          }));
+        } else { skipped.other++; }
+      }
+      return Promise.all(jobs).then(function () {
+        return { items: items.filter(function (it) { return !it.missing || it.k === 'chart' && it.chart; }), skipped: skipped };
+      });
+    }
+
+    function chartFrom(doc) {
+      if (!doc) return null;
+      var plot = kid(doc, 'plotArea'); if (!plot) return null;
+      var group = null;
+      for (var c = plot.firstElementChild; c; c = c.nextElementSibling) if (/Chart$/.test(c.localName) && kid(c, 'ser')) { group = c; break; }
+      if (!group) return null;
+      var ser = kid(group, 'ser'), labels = {}, data = [];
+      kids(child(ser, 'cat'), 'pt').forEach(function (pt) { var v = kid(pt, 'v'); if (v && !(pt.getAttribute('idx') in labels)) labels[pt.getAttribute('idx')] = tidy(v.textContent); });
+      kids(child(ser, 'val'), 'pt').forEach(function (pt) {
+        var v = kid(pt, 'v'), idx = pt.getAttribute('idx'), n = v ? Number(v.textContent) : NaN;
+        if (isFinite(n)) data.push({ idx: Number(idx), label: labels[idx] || String(Number(idx) + 1), value: n });
+      });
+      data.sort(function (a, b) { return a.idx - b.idx; });
+      if (!data.length) return null;
+      return { type: /^line/.test(group.localName) ? 'line' : 'bar', data: data.map(function (r) { return { label: r.label, value: r.value }; }) };
+    }
+
+    /* Table styles: the file's own, or PowerPoint's built-in "Medium Style 2" family */
+    var tableStylesDoc = null;
+    var BUILTIN_TABLE = { '{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}': 'accent1', '{21E4AEA4-8DFA-4A89-87EB-49C32662AFE8}': 'accent2', '{F5AB1C69-6EDB-4FF4-983F-18BD219EF322}': 'accent3',
+      '{00A15C55-8517-42AA-B614-E9B94910E393}': 'accent4', '{7DF18680-E054-41AD-8BC1-D1AEF772440D}': 'accent5', '{93296810-A885-4BE3-A3E7-6D5BEEA58F35}': 'accent6', '{073A0DAA-6AF3-43AB-8588-CEC1D06C72B9}': 'dk1' };
+    function builtinTable(acc) {
+      var A = 'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"', W = '<a:ln w="12700"><a:solidFill><a:schemeClr val="lt1"/></a:solidFill></a:ln>';
+      var fill = function (mod) { return '<a:fill><a:solidFill><a:schemeClr val="' + acc + '">' + (mod ? '<a:tint val="' + mod + '"/>' : '') + '</a:schemeClr></a:solidFill></a:fill>'; };
+      var strong = '<a:tcTxStyle b="on"><a:fontRef idx="minor"/><a:schemeClr val="lt1"/></a:tcTxStyle><a:tcStyle>' + fill(0) + '</a:tcStyle>';
+      var s = '<a:tblStyle ' + A + '><a:wholeTbl><a:tcTxStyle><a:fontRef idx="minor"/><a:schemeClr val="dk1"/></a:tcTxStyle><a:tcStyle><a:tcBdr>' +
+        ['left', 'right', 'top', 'bottom', 'insideH', 'insideV'].map(function (k) { return '<a:' + k + '>' + W + '</a:' + k + '>'; }).join('') + '</a:tcBdr>' + fill(20000) + '</a:tcStyle></a:wholeTbl>' +
+        '<a:band1H><a:tcStyle>' + fill(40000) + '</a:tcStyle></a:band1H><a:band1V><a:tcStyle>' + fill(40000) + '</a:tcStyle></a:band1V>' +
+        '<a:lastCol>' + strong + '</a:lastCol><a:firstCol>' + strong + '</a:firstCol><a:lastRow>' + strong + '</a:lastRow><a:firstRow>' + strong + '</a:firstRow></a:tblStyle>';
+      return parser.parseFromString(s, 'application/xml').documentElement;
+    }
+    function tableStyle(id) {
+      if (!id) return null;
+      var own = kids(tableStylesDoc, 'tblStyle').find(function (t) { return t.getAttribute('styleId') === id; });
+      return own || (BUILTIN_TABLE[id] ? builtinTable(BUILTIN_TABLE[id]) : null);
+    }
+    function tsPart(el, ctx) {
+      if (!el) return null;
+      var o = {}, tcs = child(el, 'tcStyle'), tts = child(el, 'tcTxStyle');
+      if (tcs) {
+        var fe = child(tcs, 'fill'); if (fe) { var f = fillOf(fe, ctx, null); if (f !== undefined) o.fill = f; }
+        var fr = child(tcs, 'fillRef'); if (fr) o.fill = firstColour(fr, ctx);
+        var bdr = child(tcs, 'tcBdr');
+        if (bdr) { o.bd = {}; ['left', 'right', 'top', 'bottom', 'insideH', 'insideV'].forEach(function (k) {
+          var e = child(bdr, k); if (!e) return;
+          var ln = child(e, 'ln'), lr = child(e, 'lnRef');
+          if (ln) { var l = lineOf(ln, ctx); o.bd[k] = l && l.c ? Object.assign({ w: 0.75 }, l) : null; }
+          else if (lr) o.bd[k] = { c: firstColour(lr, ctx), w: 1 };
+        }); }
+      }
+      if (tts) {
+        if (tts.hasAttribute('b')) o.b = tts.getAttribute('b') === 'on';
+        if (tts.hasAttribute('i')) o.i = tts.getAttribute('i') === 'on';
+        var col = firstColour(tts, ctx); if (!col) col = firstColour(child(tts, 'fontRef'), ctx);
+        if (col) o.c = col;
+      }
+      return o;
+    }
+
+    /* Slides saved by Tabbed Slides in its own layout: title, points, one picture, one chart */
+    function readStandard(sp) {
+      var doc = sp.doc, rel = sp.rel, s = newSlide(''), texts = [], pic = null, chartRel = null, jobs = [];
+      var tree = kid(doc, 'spTree');
+      kids(doc, 'cNvPr').forEach(function (n) {
+        if (n.getAttribute('name') !== 'TabbedSlides standard' || stdTheme) return;
+        var clr = kid(n.parentNode.parentNode, 'srgbClr'), v = clr ? (clr.getAttribute('val') || '').toUpperCase() : '';
+        Object.keys(THEMES).some(function (k) { if (THEMES[k].pptAccent === v) { stdTheme = k; return true; } return false; });
+      });
+      for (var c = tree.firstElementChild; c; c = c.nextElementSibling) {
+        if (c.localName === 'sp') { var paras = shapeParas(c); if (paras.length) { var off = kid(child(c, 'spPr'), 'off'); texts.push({ y: num(off, 'y', 0), paras: paras }); } }
+        else if (c.localName === 'pic') { var id = rid(kid(c, 'blip'), 'embed'); if (!pic && rel[id]) pic = rel[id].path; }
+        else if (c.localName === 'graphicFrame') { var ch = kid(c, 'chart'); if (ch && !chartRel && rel[rid(ch, 'id')]) chartRel = rel[rid(ch, 'id')].path; }
+      }
+      texts.sort(function (a, b) { return a.y - b.y; });
+      if (texts.length) s.title = texts.shift().paras.join(' ');
+      texts.forEach(function (t) { s.points = s.points.concat(t.paras); });
+      if (pic && zip.file(pic)) {
+        var ext = pic.split('.').pop().toLowerCase();
+        jobs.push(zip.file(pic).async('arraybuffer').then(function (ab) { return pictureToDataURL(new Blob([ab], { type: 'image/' + (ext === 'jpg' ? 'jpeg' : ext) }), null); }).then(function (u) { if (u) s.image = u; }));
+      }
+      if (chartRel) jobs.push(xml(chartRel).then(function (cd) { s.chart = chartFrom(cd); }));
+      return Promise.all(jobs).then(function () { return s; });
+    }
+    function notesOf(sp) {
+      var notesRel = relOf(sp, /\/notesSlide$/);
+      if (!notesRel) return Promise.resolve('');
+      return xml(notesRel.path).then(function (nd) {
+        var body = kids(nd, 'sp').find(function (n) { var ph = kid(child(n, 'nvSpPr'), 'ph'); return ph && ph.getAttribute('type') === 'body'; });
+        return body ? kids(child(body, 'txBody'), 'p').map(function (p) { return paraText(p, true); }).join('\n').trim() : '';
+      });
+    }
+    function titleOf(items) {
+      var best = -1, bestScore = -1;
+      items.forEach(function (it, i) {
+        if (it.k !== 'sp' || !it.tx) return;
+        var text = it.tx.paras.map(function (p) { return p.runs.map(function (r) { return r.t; }).join(''); }).join(' ').trim();
+        if (!text) return;
+        if (it.ph === 'title') { if (bestScore < 1e9) { best = i; bestScore = 1e9; } return; }
+        var sz = Math.max.apply(null, it.tx.paras.map(function (p) { return Math.max.apply(null, p.runs.map(function (r) { return r.sz; }).concat([0])); }));
+        /* Large text near the top of the slide */
+        var score = sz * (1 - it.y / slideH);
+        if (it.y < 0.4 * slideH && score > bestScore) { best = i; bestScore = score; }
+      });
+      return best;
+    }
+    function textOfItem(it) { return it && it.tx ? tidy(it.tx.paras.map(function (p) { return p.runs.map(function (r) { return r.t; }).join(''); }).join(' ')) : ''; }
+
+    var slideW = 960, slideH = 540, left = { charts: 0, other: 0 }, stdTheme = null;
+    function readSlide(path) {
+      return part(path).then(function (sp) {
+        if (!sp.doc) return null;
+        var standard = kids(sp.doc, 'cNvPr').some(function (n) { return n.getAttribute('name') === 'TabbedSlides standard'; });
+        var job = standard ? readStandard(sp) : contextFor(sp).then(function (ctx) {
+          return collectItems(ctx).then(function (res) {
+            left.charts += res.skipped.charts; left.other += res.skipped.other;
+            var bg = backgroundOf(ctx), s = newSlide(''), layout = { w: slideW, h: slideH, items: res.items };
+            var bgJob = Promise.resolve();
+            if (bg && bg.c) layout.bg = bg.c;
+            else if (bg && bg.img && zip.file(bg.img)) {
+              var ext = bg.img.split('.').pop().toLowerCase();
+              bgJob = zip.file(bg.img).async('arraybuffer').then(function (ab) { return pictureToDataURL(new Blob([ab], { type: 'image/' + (ext === 'jpg' ? 'jpeg' : ext) }), null); }).then(function (u) { if (u) layout.bgImg = u; });
+            }
+            if (!layout.bg && !layout.bgImg) layout.bg = { c: 'FFFFFF', a: 1 };
+            var ti = titleOf(res.items); layout.ti = ti;
+            s.title = ti >= 0 ? textOfItem(res.items[ti]) : '';
+            s.layout = layout;
+            return bgJob.then(function () { return s; });
+          });
+        });
+        return Promise.all([job, notesOf(sp)]).then(function (r) { r[0].notes = r[1]; return r[0]; });
+      });
+    }
+
+    return window.JSZip.loadAsync(buf).catch(function () { fail('This file could not be read as a PowerPoint (.pptx) file.'); }).then(function (z) {
+      zip = z;
+      if (!zip.file('ppt/presentation.xml')) fail('This file is not a PowerPoint presentation.');
+      return Promise.all([part('ppt/presentation.xml'), xml('docProps/core.xml'), xml('docProps/app.xml'), xml('ppt/tableStyles.xml')]);
+    }).then(function (res) {
+      var pres = res[0], core = res[1], app = res[2]; tableStylesDoc = res[3];
+      var ownFile = !!(app && /Tabbed Slides/.test((kid(app, 'Company') || {}).textContent || ''));
+      var sz = kid(pres.doc, 'sldSz'); if (sz) { slideW = EMU(sz.getAttribute('cx')) || 960; slideH = EMU(sz.getAttribute('cy')) || 540; }
+      presDefaults = kid(pres.doc, 'defaultTextStyle');
+      var paths = kids(kid(pres.doc, 'sldIdLst'), 'sldId').map(function (n) { var r = pres.rel[rid(n, 'id')]; return r && r.path; }).filter(Boolean);
+      if (!paths.length) fail('This PowerPoint file has no slides.');
+      var title = tidy((kid(core, 'title') || {}).textContent || '');
+      if (!title || /^(PowerPoint )?Presentation$/i.test(title) || /^PptxGenJS/i.test(title)) title = name.replace(/\.pptx$/i, '').replace(/[_]+/g, ' ');
+      /* One slide at a time keeps memory low on phones */
+      var slides = [], chain = Promise.resolve();
+      paths.forEach(function (p) { chain = chain.then(function () { return readSlide(p).then(function (s) { if (s) slides.push(s); }); }); });
+      return chain.then(function () {
+        if (!slides.length) fail('No slides could be read from this file.');
+        var themeName = stdTheme || 'slate';
+        var note = '';
+        var miss = [];
+        if (left.charts) miss.push(left.charts + (left.charts === 1 ? ' chart' : ' charts'));
+        if (left.other) miss.push(left.other + (left.other === 1 ? ' other object (such as a video, drawing or SmartArt)' : ' other objects (such as videos, drawings or SmartArt)'));
+        if (miss.length) note = 'Not shown: ' + miss.join(' and ') + '.';
+        var d = { id: uid(), title: title, theme: themeName, slides: slides, current: 0 };
+        if (Math.abs(slideW - 960) > 1 || Math.abs(slideH - 540) > 1) d.size = { w: slideW, h: slideH };
+        return { deck: d, note: note, ownFile: ownFile };
+      });
+    });
+  }
+
+  /* HTML export: one file, with the same reveal keys */
+  function htmlDeck(d) {
+    var sections = d.slides.map(function (s, i) {
+      return '<section class="slide" data-n="' + (i + 1) + '" data-points="' + s.points.length + '">' + slideHTML(s, d, null).replace('<div class="sl" ', '<div class="sl" ') + '</section>';
+    }).join('\n');
+    var t = theme(d);
+    return '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>' + esc(d.title) + '</title>\n<style>\n' +
+      'html,body{margin:0;height:100%;background:#13233d;font-family:"Literata",Georgia,serif}\n' +
+      '.slide{display:none;position:fixed;inset:0;margin:auto;width:min(96vw,calc(92vh*16/9));height:min(92vh,calc(96vw*9/16))}\n' +
+      '.slide.on{display:block}\n' +
+      '.sl{width:100%;height:100%;padding:5% 6%;box-sizing:border-box;background:var(--paper);color:var(--ink);border-top:14px solid var(--accent);display:flex;flex-direction:column;overflow:hidden}\n' +
+      '.sl h2{margin:0 0 4%;font-size:clamp(22px,4vw,56px);line-height:1.2;color:var(--header)}\n' +
+      '.sl .cols{display:flex;gap:4%;flex:1;min-height:0}.sl .text{flex:1 1 0;min-width:0}.sl .side{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:3%}\n' +
+      '.sl ul{font-size:clamp(16px,2.6vw,34px);line-height:1.5;padding-left:1.2em;margin:0}.sl li{margin-bottom:.35em}\n' +
+      '.sl li.hidden-step{visibility:hidden}.sl img{max-width:100%;max-height:100%;object-fit:contain;margin:0 auto;display:block}.sl svg{width:100%;height:auto}\n' +
+      '.bar{position:fixed;bottom:10px;left:0;right:0;text-align:center;color:#dbe7f5;font:14px system-ui,sans-serif}\n' +
+      '.credit{position:fixed;top:8px;left:12px;color:#dbe7f5;font:12px system-ui,sans-serif}\n' + FL_CSS + '\n' +
+      '</style>\n</head>\n<body>\n' + sections + '\n<div class="bar" id="bar"></div>\n<p class="credit">Made with Tabbed Slides (alpha) · Made by The Last Byzantine, MMXXVI. Sharing is love!</p>\n' +
+      '<script>\n(function(){var s=[].slice.call(document.querySelectorAll(".slide")),i=0,step=0;\n' +
+      'function show(n,st){i=Math.max(0,Math.min(s.length-1,n));step=st;s.forEach(function(x,k){x.classList.toggle("on",k===i);});\n' +
+      'var lis=[].slice.call(s[i].querySelectorAll("li")),pts=lis.filter(function(li){return !li.classList.contains("ghost")});\n' +
+      'pts.forEach(function(li,j){li.classList.toggle("hidden-step",j>=step)});\n' +
+      'document.getElementById("bar").textContent=(i+1)+" / "+s.length+"  ·  Space or arrows to move"}\n' +
+      'function count(k){return s[k].querySelectorAll("li:not(.ghost)").length}\n' +
+      'function next(){if(step<count(i))show(i,step+1);else if(i<s.length-1)show(i+1,0)}\n' +
+      'function prev(){if(step>0)show(i,step-1);else if(i>0)show(i-1,count(i-1))}\n' +
+      'document.addEventListener("keydown",function(e){if(e.key==="ArrowRight"||e.key===" "||e.key==="PageDown"){e.preventDefault();next()}else if(e.key==="ArrowLeft"||e.key==="PageUp"){e.preventDefault();prev()}});\n' +
+      'document.addEventListener("click",function(e){if(e.clientX>window.innerWidth/2)next();else prev()});\n' +
+      'show(0,0)})();\n<\/script>\n</body>\n</html>\n';
+  }
+  $('exporthtml').onclick = function () { var d = deck(); download(safeName(d.title) + '.html', htmlDeck(d), 'text/html;charset=utf-8'); setStatus('HTML file saved to your downloads', false); };
+
+  /* Free-layout slides back to PowerPoint, at the same positions */
+  function pptTextRuns(paras) {
+    var out = [];
+    paras.forEach(function (p, pi) {
+      var runs = (p.runs || []).filter(function (r) { return r.t !== ''; });
+      if (!runs.length) runs = [{ t: '', sz: p.esz || 18, c: { c: '000000', a: 1 } }];
+      var para = { align: ({ ctr: 'center', r: 'right', just: 'justify', dist: 'justify' }[p.al] || 'left') };
+      if (Number(p.lnPt)) para.lineSpacing = Number(p.lnPt); else if (Number(p.ln) && Number(p.ln) !== 100) para.lineSpacingMultiple = Number(p.ln) / 100;
+      if (Number(p.spcB)) para.paraSpaceBefore = Number(p.spcB); else if (Number(p.spcBPct)) para.paraSpaceBefore = Number(p.spcBPct) / 100 * 1.2 * (Number(runs[0].sz) || 18);
+      if (Number(p.spcA)) para.paraSpaceAfter = Number(p.spcA); else if (Number(p.spcAPct)) para.paraSpaceAfter = Number(p.spcAPct) / 100 * 1.2 * (Number(runs[0].sz) || 18);
+      if (p.bu) {
+        var hang = Number(p.ind) < 0 ? -Number(p.ind) : 18;
+        if (p.bu.num) para.bullet = { type: 'number', indent: hang };
+        else {
+          var ch = String(p.bu.ch || '•'); if (p.bu.f) ch = WINGDINGS[ch] || '•';
+          para.bullet = { characterCode: ('000' + ch.charCodeAt(0).toString(16).toUpperCase()).slice(-4), indent: hang };
+        }
+      }
+      runs.forEach(function (r, ri) {
+        var o = Object.assign({}, para, { fontSize: Number(r.sz) || 18, color: hexOK(r.c) ? r.c.c : '000000' });
+        if (hexOK(r.c) && Number(r.c.a) < 1) o.transparency = Math.round((1 - Number(r.c.a)) * 100);
+        if (r.f) o.fontFace = String(r.f);
+        if (r.b) o.bold = true; if (r.i) o.italic = true; if (r.u) o.underline = { style: 'sng' };
+        if (r.base > 0) o.superscript = true; else if (r.base < 0) o.subscript = true;
+        if (ri === runs.length - 1 && pi < paras.length - 1) o.breakLine = true;
+        out.push({ text: String(r.t), options: o });
+      });
+    });
+    return out;
+  }
+  function pptFill(c) { c = hexOK(c); if (!c) return undefined; var f = { color: c.c }; if (Number(c.a) < 1) f.transparency = Math.round((1 - Number(c.a)) * 100); return f; }
+  function pptLine(l) { if (!l || !hexOK(l.c)) return undefined; var o = { color: l.c.c, width: Number(l.w) || 0.75 }; if (l.dash && l.dash !== 'solid') o.dashType = l.dash; if (Number(l.c.a) < 1) o.transparency = Math.round((1 - Number(l.c.a)) * 100); return o; }
+  function addFreeSlide(pptx, sl, s, d) {
+    var L = s.layout, IN = function (v) { return (Number(v) || 0) / 72; };
+    if (L.bgImg && String(L.bgImg).indexOf('data:image/') === 0) sl.background = { data: L.bgImg };
+    else if (hexOK(L.bg)) sl.background = { color: L.bg.c };
+    L.items.forEach(function (it) {
+      var box = { x: IN(it.x), y: IN(it.y), w: Math.max(IN(it.w), 0), h: Math.max(IN(it.h), 0) };
+      if (Number(it.rot)) box.rotate = Number(it.rot);
+      if (it.fh) box.flipH = true; if (it.fv) box.flipV = true;
+      if (it.k === 'ln') {
+        var lo = pptLine(it.line) || { color: '000000', width: 0.75 };
+        if (it.tail) lo.endArrowType = 'triangle'; if (it.head) lo.beginArrowType = 'triangle';
+        sl.addShape(pptx.ShapeType.line, Object.assign(box, { line: lo }));
+      } else if (it.k === 'pic') {
+        if (it.src && String(it.src).indexOf('data:image/') === 0) sl.addImage(Object.assign(box, { data: it.src, rounding: it.geom === 'ellipse' }));
+      } else if (it.k === 'chart') {
+        if (!it.chart) return;
+        var rows = chartRows(it.chart), t = theme(d);
+        if (rows.length) sl.addChart(it.chart.type === 'line' ? pptx.ChartType.line : pptx.ChartType.bar,
+          [{ name: 'Values', labels: rows.map(function (r) { return r.label; }), values: rows.map(function (r) { return r.value; }) }],
+          Object.assign(box, { chartColors: [hexOK(it.chart.c) ? it.chart.c.c : t.pptAccent], showLegend: false, showValue: false, showTitle: !!it.chart.title, title: it.chart.title || '', valGridLine: { color: 'D9D9D9', size: 0.75 } }));
+      } else if (it.k === 'tbl') {
+        var anyStyle = it.rows.some(function (r) { return r.cells.some(function (c) { return c.fill || (c.bd && Object.keys(c.bd).length); }); });
+        var rows2 = it.rows.map(function (r) {
+          return r.cells.filter(function (c) { return !c.merged; }).map(function (c) {
+            var ins = c.ins || [7.2, 3.6, 7.2, 3.6];
+            var o = { valign: ({ ctr: 'middle', b: 'bottom' }[c.anchor] || 'top'), margin: [ins[0], ins[2], ins[3], ins[1]] };
+            if (c.span > 1) o.colspan = Number(c.span); if (c.rspan > 1) o.rowspan = Number(c.rspan);
+            var f = pptFill(c.fill); if (f) o.fill = f;
+            if (anyStyle) o.border = ['lnT', 'lnR', 'lnB', 'lnL'].map(function (k) { var l = c.bd && c.bd[k]; return l && hexOK(l.c) ? { type: 'solid', pt: Number(l.w) || 0.75, color: l.c.c } : { type: 'none' }; });
+            else o.border = [0, 1, 2, 3].map(function () { return { type: 'solid', pt: 0.75, color: 'BFBFBF' }; });
+            return { text: pptTextRuns(c.paras || []), options: o };
+          });
+        });
+        sl.addTable(rows2, { x: box.x, y: box.y, w: box.w, colW: (it.cols || []).map(IN), rowH: it.rows.map(function (r) { return IN(r.h); }) });
+      } else {
+        var shape = it.geom && pptx.ShapeType[it.geom] ? pptx.ShapeType[it.geom] : (it.geom && /^[a-zA-Z0-9]+$/.test(it.geom) ? it.geom : pptx.ShapeType.rect);
+        var o2 = Object.assign(box, { shape: shape });
+        var fill = pptFill(it.fill); if (fill) o2.fill = fill;
+        var line = pptLine(it.line); if (line) o2.line = line;
+        if (it.geom === 'roundRect') o2.rectRadius = IN((it.adj != null ? Number(it.adj) : 0.16667) * Math.min(it.w, it.h));
+        var hasText = it.tx && it.tx.paras.some(function (p) { return p.runs.some(function (r) { return r.t; }); });
+        if (it.bg && String(it.bg).indexOf('data:image/') === 0) sl.addImage({ data: it.bg, x: box.x, y: box.y, w: box.w, h: box.h, rotate: box.rotate });
+        if (hasText) {
+          var ins = it.tx.ins || [7.2, 3.6, 7.2, 3.6];
+          o2.margin = [ins[0], ins[2], ins[3], ins[1]];
+          o2.valign = ({ ctr: 'middle', b: 'bottom' }[it.tx.anchor] || 'top');
+          o2.wrap = it.tx.wrap !== false;
+          o2.fit = 'none';
+          if (it.tx.vert === 'vert' || it.tx.vert === 'eaVert') o2.vert = 'vert'; else if (it.tx.vert === 'vert270') o2.vert = 'vert270';
+          sl.addText(pptTextRuns(it.tx.paras), o2);
+        } else if (fill || line) sl.addShape(shape, o2);
+      }
+    });
+  }
+
+  /* PowerPoint export (PptxGenJS, MIT licence, bundled in vendor/) */
+  function buildPptx(d) {
+      var t = theme(d), pptx = new window.PptxGenJS();
+      /* Decks opened from PowerPoint keep their page size; standard slides are scaled to fit it */
+      var PW = d.size ? d.size.w / 72 : 13.333, PH = d.size ? d.size.h / 72 : 7.5, kx = PW / 13.333, ky = PH / 7.5;
+      if (d.size) { pptx.defineLayout({ name: 'DECK', width: PW, height: PH }); pptx.layout = 'DECK'; } else pptx.layout = 'LAYOUT_WIDE';
+      pptx.title = d.title;
+      pptx.company = 'Tabbed Slides';
+      d.slides.forEach(function (s) {
+        var sl = pptx.addSlide();
+        if (s.layout) { addFreeSlide(pptx, sl, s, d); if (s.notes) sl.addNotes(s.notes); return; }
+        sl.background = { color: t.pptPaper };
+        sl.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 13.33 * kx, h: 0.18 * ky, fill: { color: t.pptAccent }, line: { color: t.pptAccent }, objectName: 'TabbedSlides standard' });
+        sl.addText(s.title || 'Untitled slide', { x: 0.6 * kx, y: 0.35 * ky, w: 12.1 * kx, h: 1.0 * ky, fontFace: 'Georgia', fontSize: 30, bold: true, color: t.pptHeader, valign: 'middle' });
+        var rows = chartRows(s.chart), hasImage = !!(s.image && s.image.indexOf('data:image/') === 0), hasChart = rows.length > 0;
+        var textW = (hasImage || hasChart) ? 6.4 : 12.1;
+        if (s.points.length) {
+          sl.addText(s.points.map(function (p) { return { text: p, options: { bullet: true, breakLine: true } }; }),
+            { x: 0.6 * kx, y: 1.6 * ky, w: textW * kx, h: 5.3 * ky, fontFace: 'Georgia', fontSize: 20, color: t.pptInk, valign: 'top', paraSpaceAfter: 8 });
+        }
+        var sideH = (hasImage && hasChart) ? 2.6 : 5.2, y = 1.6;
+        if (hasImage) { sl.addImage({ data: s.image, x: 7.4 * kx, y: y * ky, w: 5.3 * kx, h: sideH * ky, sizing: { type: 'contain', w: 5.3 * kx, h: sideH * ky } }); y += sideH + 0.1; }
+        if (hasChart) {
+          sl.addChart(s.chart.type === 'line' ? pptx.ChartType.line : pptx.ChartType.bar,
+            [{ name: s.title || 'Values', labels: rows.map(function (r) { return r.label; }), values: rows.map(function (r) { return r.value; }) }],
+            { x: 7.4 * kx, y: y * ky, w: 5.3 * kx, h: sideH * ky, chartColors: [t.pptAccent], showLegend: false, showValue: true, dataLabelFontSize: 11, catAxisLabelFontSize: 11, valAxisLabelFontSize: 10 });
+        }
+        if (s.notes) sl.addNotes(s.notes);
+      });
+      return pptx;
+  }
+  $('exportppt').onclick = function () {
+    var d = deck();
+    if (typeof window.PptxGenJS !== 'function') { alert('The PowerPoint library did not load. Check your connection once, then try again.'); return; }
+    setStatus('Building the PowerPoint file…', false);
+    try {
+      buildPptx(d).writeFile({ fileName: safeName(d.title) + '.pptx' }).then(function () {
+        setStatus('PowerPoint file saved to your downloads', false);
+      }).catch(function (e) { setStatus('PowerPoint export failed: ' + (e.message || 'unknown error'), true); });
+    } catch (e) { setStatus('PowerPoint export failed: ' + (e.message || 'unknown error'), true); }
+  };
+
+  /* Print: one slide per landscape page */
+  $('printdeck').onclick = function () {
+    var d = deck(), area = $('printarea');
+    area.innerHTML = d.slides.map(function (s) { return s.layout ? '<div class="flpage">' + slideHTML(s, d, null) + '</div>' : slideHTML(s, d, null); }).join('');
+    window.print();
+  };
+
+  /* Present with reveal and notes */
+  function showPresent() {
+    presIndex = deck().current; presStep = 0; notesOn = true;
+    drawPresent();
+    $('present').classList.add('on');
+    document.body.style.overflow = 'hidden';
+    try { if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(function () {}); } catch (e) {}
+  }
+  function drawPresent() {
+    var d = deck();
+    presIndex = Math.max(0, Math.min(d.slides.length - 1, presIndex));
+    var s = d.slides[presIndex], n = s.points.length;
+    presStep = Math.max(0, Math.min(n, presStep));
+    $('pslide').innerHTML = slideHTML(s, d, presStep);
+    $('pbar').textContent = (presIndex + 1) + ' / ' + d.slides.length + (n ? '  ·  point ' + presStep + ' of ' + n : '');
+    $('pnotes').hidden = !notesOn;
+    $('present').classList.toggle('notes-on', notesOn);
+    $('pnotes').textContent = s.notes || 'No speaker notes for this slide.';
+  }
+  function nextPresent() {
+    var n = deck().slides[presIndex].points.length;
+    if (presStep < n) presStep++;
+    else if (presIndex < deck().slides.length - 1) { presIndex++; presStep = 0; }
+    drawPresent();
+  }
+  function prevPresent() {
+    if (presStep > 0) presStep--;
+    else if (presIndex > 0) { presIndex--; presStep = deck().slides[presIndex].points.length; }
+    drawPresent();
+  }
+  function closePresent() {
+    $('present').classList.remove('on'); document.body.style.overflow = '';
+    try { if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(function () {}); } catch (e) {}
+    deck().current = presIndex; render();
+  }
+  $('presentbtn').onclick = showPresent;
+  $('pclose').onclick = closePresent;
+  $('pprev').onclick = prevPresent;
+  $('pnext').onclick = nextPresent;
+  document.addEventListener('keydown', function (e) {
+    if (!$('present').classList.contains('on')) return;
+    if (e.key === 'Escape') closePresent();
+    else if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); nextPresent(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prevPresent(); }
+    else if (e.key === 'n' || e.key === 'N') { notesOn = !notesOn; drawPresent(); }
+  });
+
+  /* Ribbon sections */
+  function showSection(name) {
+    [].forEach.call(document.querySelectorAll('.rtab'), function (b) {
+      var on = b.dataset.sec === name; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1;
+    });
+    [].forEach.call(document.querySelectorAll('.rsec'), function (sec) { sec.hidden = sec.dataset.sec !== name; });
+  }
+  /* Click a tab to switch sections. Click the tab you are on to hide the ribbon; click any tab to show it again. */
+  var ribbonHidden = false;
+  [].forEach.call(document.querySelectorAll('.rtab'), function (b) {
+    b.addEventListener('click', function () {
+      var wasOn = b.getAttribute('aria-selected') === 'true';
+      if (ribbonHidden) { ribbonHidden = false; document.body.classList.remove('ribbon-off'); showSection(b.dataset.sec); }
+      else if (wasOn) { ribbonHidden = true; document.body.classList.add('ribbon-off'); }
+      else showSection(b.dataset.sec);
+    });
+  });
+  showSection('Home');
+
+  $('discardall').onclick = function () {
+    var n = state.decks.length;
+    if (!confirm('Discard all ' + n + (n === 1 ? ' deck' : ' decks') + ' and their drafts in this browser? Files you saved are not changed.')) return;
+    state.decks = [newDeck()]; state.activeId = state.decks[0].id; render(); writeStore();
+  };
+
+  state = readStore() || (function () {
+    var d = newDeck('Welcome deck');
+    d.slides = [
+      { id: uid(), title: 'Tabbed Slides', points: ['Slides in your browser', 'One tab per deck', 'Points appear one by one in Present'], notes: 'Say hello and explain the alpha status.', image: null, chart: null },
+      { id: uid(), title: 'Sales by year', points: ['Growth in the last three years'], notes: '', image: null, chart: { type: 'bar', data: [{ label: '2023', value: 120 }, { label: '2024', value: 145 }, { label: '2025', value: 160 }] } }
+    ];
+    return { version: 1, activeId: d.id, decks: [d] };
+  })();
+  if (!state.decks.some(function (d) { return d.id === state.activeId; })) state.activeId = state.decks[0].id;
+  state.decks.forEach(function (d) { d.theme = d.theme || 'slate'; });
+  render();
+  if (!readStore()) writeStore();
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(function () {}); } catch (e) {}
+  /* Offline: the service worker saves the app on the first online visit */
+  if ('serviceWorker' in navigator) window.addEventListener('load', function () {
+    var hadWorker = !!navigator.serviceWorker.controller;
+    /* Check for a newer version each time the app opens online */
+    navigator.serviceWorker.register('./sw.js').then(function (reg) { if (hadWorker && navigator.onLine) reg.update().catch(function () {}); }).catch(function () {});
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+      if (hadWorker) setStatus('A new version of Tabbed Slides is ready. Reload the page to use it.', false);
+      else setStatus('Tabbed Slides is saved on this device and now works offline', false);
+      hadWorker = true;
+    });
+  });
+
+  /* Spelling: the Hunspell worker from Tabbed Word (English, Greek, Turkish). Underlines use the CSS Custom Highlight API. */
+  (function () {
+    var WORKER_URL = 'spell/spell-worker.js', HL = 'tw-spell';
+    var WORD = /[\p{L}\p{M}]+(?:['’][\p{L}\p{M}]*)?/gu;
+    var worker = null, seq = 0, waiting = new Map(), known = new Set(), missed = new Set(), suggestCache = new Map(), timer = null, busy = false, again = false;
+    function on() { return $('spellon').checked; }
+    function setState(t) { $('spellstate').textContent = t; }
+    function stems(text) {
+      var out = [], m; WORD.lastIndex = 0;
+      while ((m = WORD.exec(text))) {
+        var raw = m[0], cut = raw.search(/['’]/), stem = cut >= 0 ? raw.slice(0, cut) : raw;
+        if (stem.length >= 2) out.push({ word: stem, start: m.index });
+      }
+      return out;
+    }
+    function slideText(s) { return s.layout ? layoutText(s.layout) : s.title + '\n' + s.points.join('\n'); }
+    function ask(msg) {
+      return new Promise(function (resolve, reject) {
+        if (!worker) {
+          worker = new Worker(WORKER_URL);
+          worker.onmessage = function (e) {
+            var p = waiting.get(e.data.id); if (!p) return; waiting.delete(e.data.id);
+            if (e.data.error) p.reject(new Error(e.data.error)); else p.resolve(e.data);
+          };
+          worker.onerror = function () { setState('Spelling is not available on this device.'); worker.terminate(); worker = null; };
+        }
+        var id = ++seq; waiting.set(id, { resolve: resolve, reject: reject }); msg.id = id; worker.postMessage(msg);
+      });
+    }
+    function schedule(delay) {
+      clearTimeout(timer);
+      if (!on()) { clearHL(); renderList(); setState('Spelling is off'); return; }
+      timer = setTimeout(check, delay === undefined ? 600 : delay);
+    }
+    function clearHL() { if (window.CSS && CSS.highlights) CSS.highlights.delete(HL); }
+    function check() {
+      if (!on()) return;
+      if (busy) { again = true; return; }
+      var unique = [], seen = new Set();
+      deck().slides.forEach(function (s) { stems(slideText(s)).forEach(function (w) { if (!seen.has(w.word)) { seen.add(w.word); unique.push(w.word); } }); });
+      var unknown = unique.filter(function (w) { return !known.has(w); });
+      if (!unique.length) { renderList(); highlight(); setState('No words to check'); return; }
+      setState(unknown.length ? 'Checking…' : 'Checking…');
+      busy = true;
+      var p = unknown.length ? ask({ type: 'check', words: unknown }) : Promise.resolve({ misses: [] });
+      p.then(function (res) {
+        unknown.forEach(function (w) { known.add(w); });
+        res.misses.forEach(function (w) { missed.add(w); });
+        renderList(); highlight();
+        var n = unique.filter(function (w) { return missed.has(w); }).length;
+        setState(n ? n + (n === 1 ? ' possible misspelling' : ' possible misspellings') : 'No possible misspellings');
+      }).catch(function (e) { setState('Spelling could not run: ' + e.message); })
+        .finally(function () { busy = false; if (again) { again = false; schedule(250); } });
+    }
+    /* Underlines on the current slide */
+    function highlight() {
+      if (!window.CSS || !CSS.highlights || typeof Highlight === 'undefined') return;
+      clearHL();
+      if (!on()) return;
+      var ranges = [], walker = document.createTreeWalker($('stage'), NodeFilter.SHOW_TEXT), n;
+      while ((n = walker.nextNode())) {
+        stems(n.data).forEach(function (w) {
+          if (!missed.has(w.word)) return;
+          var r = document.createRange(); r.setStart(n, w.start); r.setEnd(n, w.start + w.word.length); ranges.push(r);
+        });
+      }
+      CSS.highlights.set(HL, new Highlight(...ranges));
+    }
+    /* Misspellings in the deck, with the slides they are on */
+    function renderList() {
+      var ul = $('spelllist'); ul.replaceChildren();
+      if (!on()) return;
+      var groups = new Map();
+      deck().slides.forEach(function (s, i) {
+        stems(slideText(s)).forEach(function (w) {
+          if (!missed.has(w.word)) return;
+          if (!groups.has(w.word)) groups.set(w.word, []);
+          var g = groups.get(w.word); if (g.indexOf(i) < 0) g.push(i);
+        });
+      });
+      groups.forEach(function (slides, word) {
+        var li = document.createElement('li');
+        var w = document.createElement('span'); w.className = 'sp-word'; w.textContent = word;
+        var info = document.createElement('span'); info.textContent = ' · slide ' + slides.map(function (i) { return i + 1; }).join(', ');
+        var go = document.createElement('button'); go.type = 'button'; go.textContent = 'Go to';
+        go.onclick = function () { var d = deck(); d.current = slides[0]; render(); queueSave(); };
+        var sg = document.createElement('button'); sg.type = 'button'; sg.textContent = 'Suggestions';
+        sg.onclick = function () { showSuggestions(li, word); };
+        li.append(w, info, document.createElement('br'), go, sg);
+        ul.append(li);
+      });
+    }
+    function showSuggestions(li, word) {
+      var old = li.querySelector('.sp-sugg'); if (old) { old.remove(); return; }
+      var box = document.createElement('span'); box.className = 'sp-sugg'; box.style.display = 'block';
+      box.textContent = 'Looking…'; li.append(box);
+      (suggestCache.has(word) ? Promise.resolve(suggestCache.get(word)) : ask({ type: 'suggest', word: word }).then(function (r) { suggestCache.set(word, r.suggestions); return r.suggestions; }))
+        .then(function (list) {
+          box.textContent = '';
+          if (!list.length) { box.textContent = 'No suggestions'; return; }
+          list.forEach(function (sug) {
+            var b = document.createElement('button'); b.type = 'button'; b.textContent = sug;
+            b.onclick = function () { replaceWord(word, sug); };
+            box.append(b);
+          });
+        }).catch(function (e) { box.textContent = 'Suggestions could not load: ' + e.message; });
+    }
+    function replaceWord(word, rep) {
+      var re = new RegExp('(^|[^\\p{L}\\p{M}])' + word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?![\\p{L}\\p{M}])', 'gu');
+      deck().slides.forEach(function (s) {
+        s.title = s.title.replace(re, function (m, p1) { return p1 + rep; });
+        s.points = s.points.map(function (p) { return p.replace(re, function (m, p1) { return p1 + rep; }); });
+        if (s.layout) eachRun(s.layout, function (r) { r.t = r.t.replace(re, function (m, p1) { return p1 + rep; }); });
+      });
+      known.delete(word); missed.delete(word);
+      render(); queueSave(); schedule(250);
+    }
+    $('spellon').addEventListener('change', function () { if (on()) schedule(100); else schedule(); });
+    /* Re-check whenever the slide or the deck changes */
+    new MutationObserver(function () { if (on()) schedule(600); }).observe($('stage'), { childList: true, subtree: true, characterData: true });
+    document.addEventListener('DOMContentLoaded', function () { schedule(300); });
+    setTimeout(function () { schedule(300); }, 0);
+  })();
+
+})();
+</script>
+</body>
+</html>
