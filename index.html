@@ -4,55 +4,54 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tabbed Slides</title>
-<meta name="description" content="Tabbed Slides: alpha. Build slides in your browser, present them, export HTML or PowerPoint.">
+<meta name="description" content="Tabbed Slides. Build slides in your browser, present them, open and save PowerPoint, export HTML.">
 <meta name="referrer" content="no-referrer">
-<meta name="theme-color" content="#1e3a5f">
+<meta name="theme-color" content="#9a3412">
 <link rel="manifest" href="./manifest.webmanifest">
-<link rel="icon" href="./icons/favicon.svg" type="image/svg+xml">
-<link rel="icon" href="./icons/favicon-32.png" sizes="32x32" type="image/png">
-<link rel="icon" href="./icons/favicon-16.png" sizes="16x16" type="image/png">
-<link rel="shortcut icon" href="./favicon.ico">
-<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<link rel="icon" href="./icons/tabbed-slides.svg" type="image/svg+xml">
+<link rel="icon" href="./icons/tabbed-slides-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="./icons/tabbed-slides-16.png" sizes="16x16" type="image/png">
+<link rel="shortcut icon" href="./icons/tabbed-slides.ico">
+<link rel="apple-touch-icon" href="./icons/tabbed-slides-180.png">
 <style>
-:root{--header:#1e3a5f;--bg:#f4f7fb;--accent:#2c5282;--accent-2:#4a7bb7;--paper:#fbfdff;--ink:#13233d;--muted:#4a5e7a;--line:#cfdaea;--tab:#dbe7f5}
+:root{--header:#9a3412;--bg:#fff8f3;--accent:#c2410c;--accent-2:#f97316;--paper:#fbfdff;--ink:#2b2118;--muted:#6b5547;--line:#ecd9cb;--tab:#fde3cf}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px system-ui,-apple-system,"Segoe UI",sans-serif}
 button,input,textarea,select{font:inherit;color:inherit}
 header{background:var(--header);color:#fff;padding:20px 5% 16px;display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
 header h1{font-size:22px;margin:0 0 4px;font-weight:650}
-header h1 .alpha{font-size:12px;font-weight:600;background:#f2c14e;color:#3a2a00;border-radius:4px;padding:2px 7px;margin-left:8px;vertical-align:middle}
-header p{margin:0;color:#dbe7f5;font-size:13px}
-header .count{font-size:12px;color:#dbe7f5}
-nav.ribbon{display:flex;gap:6px;flex-wrap:wrap;padding:10px 5%;background:#f4f7fb;border-bottom:1px solid #cfdaea}
-nav.ribbon button{min-height:40px;padding:6px 12px;border:1px solid #9fb6d6;border-radius:6px;background:#fff;cursor:pointer}
-nav.ribbon button:hover{background:#dbe7f5}
+header p{margin:0;color:#fde3cf;font-size:13px}
+header .count{font-size:12px;color:#fde3cf}
+nav.ribbon{display:flex;gap:6px;flex-wrap:wrap;padding:10px 5%;background:#fff8f3;border-bottom:1px solid #ecd9cb}
+nav.ribbon button{min-height:40px;padding:6px 12px;border:1px solid #e3c3ad;border-radius:6px;background:#fff;cursor:pointer}
+nav.ribbon button:hover{background:#fde3cf}
 nav.ribbon button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
 nav.ribbon button:focus-visible,.tab-wrap button:focus-visible,.slide-item:focus-visible,.btn-row button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.tabs{display:flex;gap:6px;overflow-x:auto;padding:10px 5% 0;background:#dbe7f5;align-items:flex-end}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:10px 5% 0;background:#fde3cf;align-items:flex-end}
 .tab-wrap{display:flex;flex-shrink:0;border:1px solid var(--line);border-radius:8px 8px 0 0;background:var(--tab)}
 .tab-wrap.active{background:#fff;border-bottom-color:#fff}
 .tab-wrap button{border:0;background:transparent;padding:10px 12px;min-height:44px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;font-size:13px}
 .tab-wrap .close{padding:10px 11px;color:var(--muted)}
 .tab-add button{min-width:44px;font-size:20px;color:var(--accent);font-weight:600}
 main{display:grid;grid-template-columns:200px minmax(0,1fr) 250px;min-height:calc(100vh - 230px);background:#fff;border-top:1px solid var(--line)}
-aside{padding:14px;background:#f4f7fb}
-aside.left{border-right:1px solid #cfdaea}
-aside.right{border-left:1px solid #cfdaea}
+aside{padding:14px;background:#fff8f3}
+aside.left{border-right:1px solid #ecd9cb}
+aside.right{border-left:1px solid #ecd9cb}
 aside h2{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:4px 0 10px;font-weight:650}
 .slide-list{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:8px}
 .slide-item{display:block;width:100%;text-align:left;border:1px solid var(--line);border-radius:6px;background:#fff;padding:8px 10px;cursor:pointer;min-height:44px}
-.slide-item.current{border-color:var(--accent);box-shadow:0 0 0 2px #2c528233}
+.slide-item.current{border-color:var(--accent);box-shadow:0 0 0 2px #c2410c33}
 .slide-item .num{display:block;font-size:11px;color:var(--muted)}
 .slide-item .name{display:block;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .btn-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
-.btn-row button{min-height:40px;padding:6px 10px;border:1px solid #9fb6d6;border-radius:6px;background:#fff;cursor:pointer;font-size:13px}
+.btn-row button{min-height:40px;padding:6px 10px;border:1px solid #e3c3ad;border-radius:6px;background:#fff;cursor:pointer;font-size:13px}
 .btn-row button:disabled{opacity:.45;cursor:default}
 .editor{padding:22px 5%;display:flex;flex-direction:column;gap:14px;min-width:0}
 .editor label,aside label{font-size:12px;color:var(--muted);display:block;margin-bottom:4px}
 .editor input[type=text],.editor textarea,aside input[type=text],aside select,.editor select{width:100%;border:1px solid var(--line);border-radius:6px;padding:9px 11px;background:#fff;min-height:42px}
 .editor textarea{min-height:110px;resize:vertical;line-height:1.5}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.stage{aspect-ratio:16/9;width:100%;max-width:840px;background:var(--paper);border:1px solid #cfdaea;border-top:10px solid var(--accent-2);box-shadow:0 3px 18px #1e3a5f18;overflow:hidden;position:relative}
+.stage{aspect-ratio:16/9;width:100%;max-width:840px;background:var(--paper);border:1px solid #ecd9cb;border-top:10px solid var(--accent-2);box-shadow:0 3px 18px #9a341218;overflow:hidden;position:relative}
 .sl{width:100%;height:100%;padding:6% 7%;background:var(--paper);color:var(--ink);font-family:"Literata",Georgia,serif;display:flex;flex-direction:column;overflow:hidden;--header:#1e3a5f;--accent:#4a7bb7;--paper:#fbfdff;--ink:#13233d}
 .sl h2{margin:0 0 4%;font-size:clamp(18px,3.2vw,38px);line-height:1.2;color:var(--header);font-weight:700;overflow-wrap:anywhere}
 .sl .cols{display:flex;gap:4%;flex:1;min-height:0}
@@ -67,16 +66,16 @@ aside h2{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(
 .status{font-size:12px;color:var(--muted)}
 .status.error{color:#9b2c1f}
 .help{font-size:13px;color:var(--muted);line-height:1.5}
-footer{padding:14px 5%;background:var(--header);color:#f4f7fb;font-size:13px}
-footer .credit{margin:6px 0 0;color:#dbe7f5}
-#present{position:fixed;inset:0;background:#13233d;color:#fff;display:none;align-items:center;justify-content:center;padding:4vh 6vw;z-index:50}
+footer{padding:14px 5%;background:var(--header);color:#fff8f3;font-size:13px}
+footer .credit{margin:6px 0 0;color:#fde3cf}
+#present{position:fixed;inset:0;background:#2b2118;color:#fff;display:none;align-items:center;justify-content:center;padding:4vh 6vw;z-index:50}
 #present.on{display:flex}
 #present .pwrap{width:min(100%,calc(100vh*16/9));aspect-ratio:16/9;position:relative}
 #present .pwrap .sl{padding:6% 7%;border-top:14px solid var(--accent-2)}
 #present .pwrap .sl h2{font-size:clamp(22px,4vw,56px)}
 #present .pwrap .sl ul{font-size:clamp(16px,2.6vw,34px)}
-#present .pbar{position:absolute;bottom:-26px;left:0;right:0;text-align:center;font-size:14px;color:#dbe7f5}
-#present .pnotes{position:absolute;bottom:-72px;left:0;right:0;font-size:14px;color:#e6f1ec;max-height:60px;overflow:hidden}
+#present .pbar{position:absolute;bottom:-26px;left:0;right:0;text-align:center;font-size:14px;color:#fde3cf}
+#present .pnotes{position:absolute;bottom:-72px;left:0;right:0;font-size:14px;color:#f3ece6;max-height:60px;overflow:hidden}
 #present .pclose{position:fixed;top:12px;right:14px;min-height:44px;padding:6px 14px;background:#fff;color:var(--header);border:0;border-radius:6px;cursor:pointer}
 #present .pnav{position:fixed;top:50%;transform:translateY(-50%);background:transparent;color:#fff;border:0;font-size:34px;padding:12px;cursor:pointer;min-width:44px;min-height:44px}
 #present .pnav.prev{left:6px}#present .pnav.next{right:6px}
@@ -85,46 +84,46 @@ footer .credit{margin:6px 0 0;color:#dbe7f5}
   body>*:not(#printarea){display:none!important}
   #printarea{display:block}
   @page{size:A4 landscape;margin:0}
-  #printarea .sl{width:297mm;height:210mm;padding:14mm 18mm;page-break-after:always;border-top:6mm solid #4a7bb7;box-sizing:border-box;font-size:1em}
+  #printarea .sl{width:297mm;height:210mm;padding:14mm 18mm;page-break-after:always;border-top:6mm solid #f97316;box-sizing:border-box;font-size:1em}
   #printarea .sl h2{font-size:30pt}
   #printarea .sl ul{font-size:19pt}
   #printarea .sl li.hidden-step{visibility:visible}
 }
-@media (max-width:980px){main{grid-template-columns:1fr}aside.left,aside.right{border:0;border-top:1px solid #cfdaea}}
+@media (max-width:980px){main{grid-template-columns:1fr}aside.left,aside.right{border:0;border-top:1px solid #ecd9cb}}
 
 /* v1.2: ribbon, in-place editing, bottom bar */
-.ribtabs{display:flex;gap:4px;padding:6px 5% 0;background:#dbe7f5;border-bottom:1px solid #cfdaea}
-.rtab{border:0;border-radius:6px 6px 0 0;background:transparent;padding:10px 16px;min-height:42px;font:600 13px system-ui,sans-serif;color:#1e3a5f;cursor:pointer;border-bottom:3px solid transparent}
-.rtab[aria-selected="true"]{background:#fff;color:#1e3a5f;box-shadow:inset 0 -3px var(--accent-2)}
+.ribtabs{display:flex;gap:4px;padding:6px 5% 0;background:#fde3cf;border-bottom:1px solid #ecd9cb}
+.rtab{border:0;border-radius:6px 6px 0 0;background:transparent;padding:10px 16px;min-height:42px;font:600 13px system-ui,sans-serif;color:#9a3412;cursor:pointer;border-bottom:3px solid transparent}
+.rtab[aria-selected="true"]{background:#fff;color:#9a3412;box-shadow:inset 0 -3px var(--accent-2)}
 .rtab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-nav.ribbon{display:block;padding:8px 5%;background:#fff;border-bottom:1px solid #cfdaea;min-height:62px}
+nav.ribbon{display:block;padding:8px 5%;background:#fff;border-bottom:1px solid #ecd9cb;min-height:62px}
 .rsec{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:46px}
 .rsec[hidden]{display:none}
-nav.ribbon button{min-width:40px;min-height:40px;width:40px;padding:0;display:inline-flex;align-items:center;justify-content:center;border:1px solid #9fb6d6;border-radius:8px;background:#fff;cursor:pointer}
-nav.ribbon button:hover{background:#e4efe8}
+nav.ribbon button{min-width:40px;min-height:40px;width:40px;padding:0;display:inline-flex;align-items:center;justify-content:center;border:1px solid #e3c3ad;border-radius:8px;background:#fff;cursor:pointer}
+nav.ribbon button:hover{background:#ffedde}
 nav.ribbon button.primary{background:var(--accent);border-color:var(--accent);color:#fff;width:auto;padding:0 14px;gap:8px;font-size:14px;font-weight:600}
 nav.ribbon button.primary svg{width:20px;height:20px}
 nav.ribbon button svg{width:21px;height:21px;display:block;flex:none}
 nav.ribbon button:disabled{opacity:.4;cursor:default}
-.rsep{width:1px;height:28px;background:#cfdaea;margin:0 6px}
+.rsep{width:1px;height:28px;background:#ecd9cb;margin:0 6px}
 .rlabel{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
 .rlabel svg{width:20px;height:20px}
 .rlabel .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
-nav.ribbon select{min-height:40px;min-width:170px;border:1px solid #9fb6d6;border-radius:8px;background:#fff;padding:6px 10px}
+nav.ribbon select{min-height:40px;min-width:170px;border:1px solid #e3c3ad;border-radius:8px;background:#fff;padding:6px 10px}
 .rsec-about{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;align-items:start}
 .rsec-about h3{font-size:13px;margin:0 0 6px;color:var(--header);display:flex;align-items:center;gap:8px}
 .rsec-about .ah{width:20px;height:20px;flex:none;color:var(--accent)}
-.rsec-about .help{margin:0}
-.sl h2[contenteditable]:focus,.sl li[contenteditable]:focus{outline:2px dashed #2c528255;outline-offset:4px;border-radius:3px}
+.rsec-about .help{margin:0 0 6px}.rsec-about a{color:var(--accent)}
+.sl h2[contenteditable]:focus,.sl li[contenteditable]:focus{outline:2px dashed #c2410c55;outline-offset:4px;border-radius:3px}
 .sl h2:empty:before{content:'Click and type a title';opacity:.45}
 .sl li:empty:before{content:'Type a point';color:#8aa0bf}
 .stage{cursor:text}
 .editor > .help{margin:0}
-footer.bottombar{position:sticky;bottom:0;z-index:10;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 5%;background:var(--header);color:#f4f7fb;font-size:12px}
-footer.bottombar .ver{color:#dbe7f5}
-footer.bottombar .status{color:#dbe7f5}
+footer.bottombar{position:sticky;bottom:0;z-index:10;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 5%;background:var(--header);color:#fff8f3;font-size:12px}
+footer.bottombar .ver{color:#fde3cf}
+footer.bottombar .status{color:#fde3cf}
 .rtab{cursor:pointer;transition:background .15s,color .15s}
-.rtab:hover{background:#dbe7f5;color:#1e3a5f}
+.rtab:hover{background:#fde3cf;color:#9a3412}
 .rtab:active{transform:translateY(1px)}
 body.ribbon-off nav.ribbon{display:none}
 /* v1.8: spelling and dark blue */
@@ -134,8 +133,8 @@ body.ribbon-off nav.ribbon{display:none}
 .spell-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
 .spell-list li{border:1px solid var(--line);border-radius:6px;background:#fff;padding:8px 10px;font-size:13px}
 .spell-list .sp-word{font-weight:650}
-.spell-list button{font:inherit;font-size:12px;margin:6px 4px 0 0;padding:3px 8px;border:1px solid #bfcfe6;border-radius:5px;background:#fff;cursor:pointer;min-height:28px}
-.spell-list button:hover{background:#eef3fb}
+.spell-list button{font:inherit;font-size:12px;margin:6px 4px 0 0;padding:3px 8px;border:1px solid #e3c3ad;border-radius:5px;background:#fff;cursor:pointer;min-height:28px}
+.spell-list button:hover{background:#fff1e6}
 ::highlight(tw-spell){text-decoration-line:underline;text-decoration-style:wavy;text-decoration-color:#c0392b}
 </style>
 <style id="edition-v231-literata">/* literata-cyrillic-ext-400-normal */
@@ -415,6 +414,34 @@ body.ribbon-off nav.ribbon{display:none}
   unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
 }
 </style>
+<style id="theme-v20">
+/* v2.0: orange theme of the Tabbed family. Burnt-orange band, light command bar, warm sand canvas. */
+:root{--canvas:#f5ebe3;--on-band:#fde3cf;--btn-hover:#ffedde;--pressed:#ffe2cc}
+header{background:var(--header)}
+header p,header .count{color:var(--on-band)}
+.ribtabs{background:var(--header);border-bottom:0}
+.rtab{color:var(--on-band)}
+.rtab:hover{background:rgba(255,255,255,.1);color:#fff}
+.rtab[aria-selected="true"]{background:var(--bg);color:var(--header);box-shadow:inset 0 3px var(--accent-2)}
+.rtab:focus-visible{outline-color:#fff}
+nav.ribbon{background:var(--bg)}
+nav.ribbon button{color:var(--header)}
+nav.ribbon button:not(.primary):not(:disabled):hover{background:var(--btn-hover);border-color:#d9a786}
+nav.ribbon button[aria-pressed="true"]{background:var(--pressed);border-color:var(--accent)}
+nav.ribbon button.primary:hover{background:var(--header);border-color:var(--header)}
+.tabs{background:var(--canvas)}
+main{background:var(--canvas)}
+aside{background:var(--bg)}
+/* the bar above the slide follows the deck's own theme colour, not the app colour */
+.stage{border-top:1px solid var(--line)}
+.stage .sl,#present .pwrap .sl{border-top:10px solid var(--accent)}
+#present .pwrap .sl{border-top-width:14px}
+#printarea .sl{border-top-color:var(--accent)}
+#present{background:#1a1512}
+footer,footer.bottombar{background:var(--header)}
+footer.bottombar .ver,footer.bottombar .status,footer .credit{color:var(--on-band)}
+</style>
+
 </head>
 <body>
 <header>
@@ -426,7 +453,7 @@ body.ribbon-off nav.ribbon{display:none}
 </header>
 
 <div class="ribtabs" role="tablist" aria-label="Ribbon sections"><button type="button" class="rtab" role="tab" data-sec="Home" aria-selected="true">Home</button><button type="button" class="rtab" role="tab" data-sec="Slide" aria-selected="false">Slide</button><button type="button" class="rtab" role="tab" data-sec="Insert" aria-selected="false">Insert</button><button type="button" class="rtab" role="tab" data-sec="Review" aria-selected="false">Review</button><button type="button" class="rtab" role="tab" data-sec="Design" aria-selected="false">Design</button><button type="button" class="rtab" role="tab" data-sec="Export" aria-selected="false">Export</button><button type="button" class="rtab" role="tab" data-sec="About" aria-selected="false">About</button></div>
-<nav class="ribbon" aria-label="Deck actions"><section class="rsec" data-sec="Home" role="tabpanel"><button type="button" id="newdeck" title="New deck" aria-label="New deck"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M12 11v6M9 14h6"/></svg></button><button type="button" id="opendeck" title="Open file" aria-label="Open file"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></button><button type="button" id="savedeck" title="Save file" aria-label="Save file"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h11l3 3v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M8 3v5h7V3M8 21v-7h8v7"/></svg></button><span class="rsep" aria-hidden="true"></span><button type="button" id="presentbtn" class="primary" title="Present" aria-label="Present"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M10 7.5v4.5l3.6-2.25z"/><path d="M12 16v4M8 20h8"/></svg></button><span class="rsep" aria-hidden="true"></span><button type="button" id="discardall" title="Discard all decks" aria-label="Discard all decks"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></section><section class="rsec" data-sec="Slide" role="tabpanel" hidden><button type="button" id="addslide" title="New slide after this one" aria-label="New slide after this one"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="13" rx="1.5"/><path d="M12 7.5v6M9 10.5h6"/></svg></button><button type="button" id="dupslide" title="Copy this slide" aria-label="Copy this slide"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="1.5"/><path d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-9A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16H8"/></svg></button><button type="button" id="delslide" title="Delete this slide" aria-label="Delete this slide"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button><span class="rsep" aria-hidden="true"></span><button type="button" id="upslide" title="Move slide up" aria-label="Move slide up"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button><button type="button" id="downslide" title="Move slide down" aria-label="Move slide down"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg></button></section><section class="rsec" data-sec="Insert" role="tabpanel" hidden><button type="button" id="addpic" title="Add picture to this slide" aria-label="Add picture to this slide"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M4 17l5-5 4 4 3-3 4 4"/><circle cx="15.5" cy="8.5" r="1.5"/></svg></button><button type="button" id="delpic" title="Remove picture" aria-label="Remove picture"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M4 17l5-5 4 4 3-3 4 4"/><circle cx="15.5" cy="8.5" r="1.5"/><path d="M3 3l18 18"/></svg></button><span class="rsep" aria-hidden="true"></span><label class="rlabel" for="chartkind"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V4M4 20h16"/><path d="M8 16v-5M12 16V8M16 16v-3"/></svg><span class="sr">Chart</span></label><select id="chartkind" title="Chart on this slide"><option value="none">No chart</option><option value="bar">Bar chart</option><option value="line">Line chart</option></select></section><section class="rsec" data-sec="Review" role="tabpanel" hidden><label class="rcheck"><input type="checkbox" id="spellon" checked> Check spelling (English, Greek, Turkish)</label><span class="status" id="spellstate" role="status" aria-live="polite"></span></section><section class="rsec" data-sec="Design" role="tabpanel" hidden><label class="rlabel" for="theme"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="8" cy="10" r="1.3"/><circle cx="12" cy="7.5" r="1.3"/><circle cx="16" cy="10" r="1.3"/><path d="M12 21a2.5 2.5 0 0 1 0-5h2a2.5 2.5 0 0 0 0-5"/></svg><span>Theme</span></label><select id="theme" title="Colour theme for this deck"><option value="slate">Dark blue (default)</option><option value="orange">Dark yellow</option><option value="green">Green</option><option value="ink">Ink blue</option><option value="sand">Sand</option></select></section><section class="rsec" data-sec="Export" role="tabpanel" hidden><button type="button" id="exporthtml" title="Export HTML: one file for any browser" aria-label="Export HTML: one file for any browser"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 8l-4 4 4 4M16 8l4 4-4 4M14 5l-4 14"/></svg></button><button type="button" id="exportppt" title="Export PowerPoint (.pptx)" aria-label="Export PowerPoint (.pptx)"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4M8 9h8M8 12h5"/></svg></button><button type="button" id="printdeck" title="Print or save as PDF" aria-label="Print or save as PDF"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9V3h10v6"/><rect x="4" y="9" width="16" height="8" rx="1.5"/><path d="M7 14h10v7H7z"/></svg></button></section><section class="rsec rsec-about" data-sec="About" role="tabpanel" hidden><div><h3><svg class="ah" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg>Keys in Present</h3><p class="help">→ or Space: next point, then next slide<br>← : previous point or slide<br>N: show or hide speaker notes<br>Esc: close</p></div><div><h3><svg class="ah" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.5h.01"/></svg>About Tabbed Slides</h3><p class="help">Alpha version 1.9. For presentations. Video, animations between slides and advanced layouts are not supported yet.<br>Save file keeps the deck as a .json file. Export HTML makes one file for any browser, with the same reveal keys. Export PowerPoint makes a .pptx file with editable charts and notes. Pictures are resized in your browser before saving.</p></div><div><h3><svg class="ah" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>Made by</h3><p class="help">The Last Byzantine, MMXXVI. Sharing is love!</p></div></section><input type="file" id="filein" accept=".json,application/json" hidden><input type="file" id="imgin" accept="image/*" hidden></nav>
+<nav class="ribbon" aria-label="Deck actions"><section class="rsec" data-sec="Home" role="tabpanel"><button type="button" id="newdeck" title="New deck" aria-label="New deck"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M12 11v6M9 14h6"/></svg></button><button type="button" id="opendeck" title="Open file (.json or PowerPoint .pptx)  Ctrl+O" aria-label="Open file"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></button><button type="button" id="savedeck" title="Save file in the format it was opened in  Ctrl+S" aria-label="Save file"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h11l3 3v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M8 3v5h7V3M8 21v-7h8v7"/></svg></button><button type="button" id="savepptx" title="Save as PowerPoint (.pptx)" aria-label="Save as PowerPoint (.pptx)"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h11l3 3v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M9 17v-6h2.5a2 2 0 0 1 0 4H9"/></svg></button><span class="rsep" aria-hidden="true"></span><button type="button" id="presentbtn" class="primary" title="Present" aria-label="Present"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M10 7.5v4.5l3.6-2.25z"/><path d="M12 16v4M8 20h8"/></svg></button><span class="rsep" aria-hidden="true"></span><button type="button" id="discardall" title="Discard all decks" aria-label="Discard all decks"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></section><section class="rsec" data-sec="Slide" role="tabpanel" hidden><button type="button" id="addslide" title="New slide after this one" aria-label="New slide after this one"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="13" rx="1.5"/><path d="M12 7.5v6M9 10.5h6"/></svg></button><button type="button" id="dupslide" title="Copy this slide" aria-label="Copy this slide"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="1.5"/><path d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-9A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16H8"/></svg></button><button type="button" id="delslide" title="Delete this slide" aria-label="Delete this slide"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button><span class="rsep" aria-hidden="true"></span><button type="button" id="upslide" title="Move slide up" aria-label="Move slide up"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button><button type="button" id="downslide" title="Move slide down" aria-label="Move slide down"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg></button></section><section class="rsec" data-sec="Insert" role="tabpanel" hidden><button type="button" id="addpic" title="Add picture to this slide" aria-label="Add picture to this slide"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M4 17l5-5 4 4 3-3 4 4"/><circle cx="15.5" cy="8.5" r="1.5"/></svg></button><button type="button" id="delpic" title="Remove picture" aria-label="Remove picture"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M4 17l5-5 4 4 3-3 4 4"/><circle cx="15.5" cy="8.5" r="1.5"/><path d="M3 3l18 18"/></svg></button><span class="rsep" aria-hidden="true"></span><label class="rlabel" for="chartkind"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V4M4 20h16"/><path d="M8 16v-5M12 16V8M16 16v-3"/></svg><span class="sr">Chart</span></label><select id="chartkind" title="Chart on this slide"><option value="none">No chart</option><option value="bar">Bar chart</option><option value="line">Line chart</option></select></section><section class="rsec" data-sec="Review" role="tabpanel" hidden><label class="rcheck"><input type="checkbox" id="spellon" checked> Check spelling (English, Greek, Turkish)</label><span class="status" id="spellstate" role="status" aria-live="polite"></span></section><section class="rsec" data-sec="Design" role="tabpanel" hidden><label class="rlabel" for="theme"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="8" cy="10" r="1.3"/><circle cx="12" cy="7.5" r="1.3"/><circle cx="16" cy="10" r="1.3"/><path d="M12 21a2.5 2.5 0 0 1 0-5h2a2.5 2.5 0 0 0 0-5"/></svg><span>Theme</span></label><select id="theme" title="Colour theme for this deck"><option value="slate">Dark blue (default)</option><option value="orange">Dark yellow</option><option value="green">Green</option><option value="ink">Ink blue</option><option value="sand">Sand</option></select></section><section class="rsec" data-sec="Export" role="tabpanel" hidden><button type="button" id="exporthtml" title="Export HTML: one file for any browser" aria-label="Export HTML: one file for any browser"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 8l-4 4 4 4M16 8l4 4-4 4M14 5l-4 14"/></svg></button><button type="button" id="exportppt" title="Export PowerPoint (.pptx)" aria-label="Export PowerPoint (.pptx)"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4M8 9h8M8 12h5"/></svg></button><button type="button" id="printdeck" title="Print or save as PDF" aria-label="Print or save as PDF"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9V3h10v6"/><rect x="4" y="9" width="16" height="8" rx="1.5"/><path d="M7 14h10v7H7z"/></svg></button></section><section class="rsec rsec-about" data-sec="About" role="tabpanel" hidden><div><h3><svg class="ah" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg>Keys in Present</h3><p class="help">→ or Space: next point, then next slide<br>← : previous point or slide<br>N: show or hide speaker notes<br>Esc: close</p></div><div><h3><svg class="ah" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.5h.01"/></svg>About Tabbed Slides</h3><p class="help">Version 2.0. For presentations. Video, animations between slides and advanced layouts are not supported yet.<br>Open file reads Tabbed Slides (.json) and PowerPoint (.pptx) files. From PowerPoint it keeps titles, text, notes, one picture and one chart per slide; layouts, shapes and animations are not kept. Save file saves in the format the deck was opened in; Save as PowerPoint saves a .pptx. In Chrome and Edge, Save writes back into the same file; in other browsers it goes to your downloads. Export HTML makes one file for any browser, with the same reveal keys. Export PowerPoint makes a .pptx file with editable charts and notes. Pictures are resized in your browser before saving.</p></div><div><h3><svg class="ah" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>Made by</h3><p class="help">The Last Byzantine, MMXXVI. Sharing is love!</p><p class="help">For any bug or suggestion, please contact me at <a href="mailto:thelastbyzantine@proton.me">thelastbyzantine@proton.me</a>.</p><p class="help">Source code and updates: <a href="https://github.com/The-Last-Byzantine/tabbed-slides" target="_blank" rel="noopener">github.com/The-Last-Byzantine/tabbed-slides</a></p></div></section><input type="file" id="filein" accept=".json,.pptx,application/json,application/vnd.openxmlformats-officedocument.presentationml.presentation" hidden><input type="file" id="imgin" accept="image/*" hidden></nav>
 
 <div id="tabs" class="tabs" role="tablist" aria-label="Open decks"></div>
 
@@ -459,7 +486,7 @@ body.ribbon-off nav.ribbon{display:none}
 <footer class="bottombar">
   <span id="dinfo"></span>
   <span class="status" id="autosave" role="status" aria-live="polite">Saved in this browser</span>
-  <span class="ver">Tabbed Slides alpha 1.9</span>
+  <span class="ver">Tabbed Slides 2.0</span>
 </footer>
 
 <div id="present" role="dialog" aria-modal="true" aria-label="Presentation">
@@ -725,17 +752,241 @@ body.ribbon-off nav.ribbon{display:none}
     setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 1000);
   }
   function safeName(t) { return (t || 'presentation').replace(/[<>:"/\\|?*\u0000-\u001f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80) || 'presentation'; }
-  $('savedeck').onclick = function () { var d = deck(); download(safeName(d.title) + '.tabbed-slides.json', JSON.stringify({ version: 1, deck: d }, null, 2), 'application/json;charset=utf-8'); setStatus('File saved to your downloads', false); };
-  $('opendeck').onclick = function () { $('filein').value = ''; $('filein').click(); };
-  $('filein').onchange = function () {
-    var f = $('filein').files[0]; if (!f) return;
-    f.text().then(function (text) {
-      var data = JSON.parse(text), d = data && data.deck;
-      if (!isDeck(d)) throw new Error('This file is not a Tabbed Slides deck.');
-      d.id = uid(); d.current = 0; d.theme = d.theme || 'slate';
-      state.decks.push(d); state.activeId = d.id; render(); writeStore();
-    }).catch(function (e) { setStatus('Could not open the file: ' + (e.message || 'unknown error'), true); alert('Could not open the file. ' + (e.message || '')); });
+  /* Files: open and save .json (Tabbed Slides) and .pptx (PowerPoint).
+     Chrome and Edge save back into the same file; other browsers save to downloads. */
+  var PPTX_MIME = 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+  var FILE_TYPES = {
+    json: { description: 'Tabbed Slides deck', accept: { 'application/json': ['.json'] } },
+    pptx: { description: 'PowerPoint presentation', accept: {} }
   };
+  FILE_TYPES.pptx.accept[PPTX_MIME] = ['.pptx'];
+  var handles = {}; /* deck id -> { handle, format }, for this visit only */
+  function fileName(d, format) { return safeName(d.title) + (format === 'pptx' ? '.pptx' : '.tabbed-slides.json'); }
+  function deckBlob(d, format) {
+    if (format === 'pptx') return buildPptx(d).write({ outputType: 'blob' });
+    return Promise.resolve(new Blob([JSON.stringify({ version: 1, deck: d }, null, 2)], { type: 'application/json;charset=utf-8' }));
+  }
+  /* asNew: always ask where to save (Save as). Must start inside the click, before any waiting. */
+  function saveDeck(format, asNew) {
+    var d = deck(); format = format || d.format || 'json';
+    if (format === 'pptx' && typeof window.PptxGenJS !== 'function') { alert('The PowerPoint library did not load. Check your connection once, then try again.'); return; }
+    var known = handles[d.id], target;
+    if (!asNew && known && known.format === format && known.handle.requestPermission) {
+      target = known.handle.requestPermission({ mode: 'readwrite' }).then(function (p) { return p === 'granted' ? known.handle : null; });
+    } else if (window.showSaveFilePicker) {
+      target = window.showSaveFilePicker({ suggestedName: fileName(d, format), types: [FILE_TYPES[format]] });
+    } else target = Promise.resolve(null);
+    setStatus(format === 'pptx' ? 'Building the PowerPoint file…' : 'Saving…', false);
+    Promise.all([target, deckBlob(d, format)]).then(function (res) {
+      var handle = res[0], blob = res[1];
+      d.format = format;
+      if (!handle) { writeStore(); download(fileName(d, format), blob); setStatus('File saved to your downloads', false); return; }
+      return handle.createWritable().then(function (w) { return w.write(blob).then(function () { return w.close(); }); }).then(function () {
+        handles[d.id] = { handle: handle, format: format };
+        d.fileName = handle.name; writeStore();
+        setStatus('Saved to ' + handle.name, false);
+      });
+    }).catch(function (e) {
+      if (e && e.name === 'AbortError') { setStatus('Save cancelled', false); return; }
+      setStatus('Could not save the file: ' + ((e && e.message) || 'unknown error'), true);
+    });
+  }
+  $('savedeck').onclick = function () { saveDeck(null, false); };
+  $('savepptx').onclick = function () { saveDeck('pptx', true); };
+
+  function openFile(f, handle) {
+    var isPptx = /\.pptx$/i.test(f.name);
+    setStatus('Opening ' + f.name + '…', false);
+    var job = isPptx ? f.arrayBuffer().then(function (buf) { return importPptx(buf, f.name); })
+      : f.text().then(function (text) {
+        var data = JSON.parse(text), d = data && data.deck;
+        if (!isDeck(d)) throw new Error('This file is not a Tabbed Slides deck.');
+        d.theme = d.theme || 'slate';
+        return { deck: d, note: '' };
+      });
+    job.then(function (r) {
+      var d = r.deck;
+      d.id = uid(); d.current = 0; d.format = isPptx ? 'pptx' : 'json'; d.fileName = f.name;
+      /* Saving over a PowerPoint file from another app would lose what Tabbed Slides cannot keep, so Save asks where to save first. */
+      if (handle && (!isPptx || r.ownFile)) handles[d.id] = { handle: handle, format: d.format };
+      state.decks.push(d); state.activeId = d.id; render(); writeStore();
+      setStatus('Opened ' + f.name + (r.note ? '. ' + r.note : ''), false);
+    }).catch(function (e) {
+      var msg = isPptx && !(e && e.tabbed) ? 'This file could not be read as a PowerPoint (.pptx) file.' : ((e && e.message) || 'unknown error');
+      setStatus('Could not open the file: ' + msg, true); alert('Could not open the file. ' + msg);
+    });
+  }
+  function openAction() {
+    if (window.showOpenFilePicker) {
+      window.showOpenFilePicker({ types: [{ description: 'Tabbed Slides or PowerPoint', accept: { 'application/json': ['.json'], 'application/vnd.openxmlformats-officedocument.presentationml.presentation': ['.pptx'] } }] })
+        .then(function (hs) { return hs[0].getFile().then(function (f) { openFile(f, hs[0]); }); })
+        .catch(function (e) { if (!e || e.name !== 'AbortError') setStatus('Could not open the file: ' + ((e && e.message) || 'unknown error'), true); });
+      return;
+    }
+    $('filein').value = ''; $('filein').click();
+  }
+  $('opendeck').onclick = openAction;
+  $('filein').onchange = function () { var f = $('filein').files[0]; if (f) openFile(f, null); };
+  document.addEventListener('keydown', function (e) {
+    if (!(e.ctrlKey || e.metaKey) || e.altKey || $('present').classList.contains('on')) return;
+    var k = e.key.toLowerCase();
+    if (k === 's') { e.preventDefault(); saveDeck(null, e.shiftKey); }
+    else if (k === 'o') { e.preventDefault(); openAction(); }
+  });
+
+  /* PowerPoint import: titles, points, speaker notes, one picture and one chart per slide.
+     JSZip comes with the PptxGenJS bundle. */
+  var NS_R = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+  function kids(node, name) { return node ? [].slice.call(node.getElementsByTagNameNS('*', name)) : []; }
+  function kid(node, name) { return kids(node, name)[0] || null; }
+  function child(node, name) { if (!node) return null; for (var c = node.firstElementChild; c; c = c.nextElementSibling) if (c.localName === name) return c; return null; }
+  function rid(node, name) { return node ? (node.getAttributeNS(NS_R, name) || '') : ''; }
+  function tidy(t) { return t.replace(/[\s ]+/g, ' ').trim(); }
+  function paraText(p, keepLines) {
+    var out = '';
+    (function walk(n) {
+      for (var c = n.firstElementChild; c; c = c.nextElementSibling) {
+        if (c.localName === 't') out += c.textContent;
+        else if (c.localName === 'br') out += '\n';
+        else if (c.localName === 'r' || c.localName === 'fld') walk(c);
+      }
+    })(p);
+    if (!keepLines) return tidy(out);
+    return out.split(/\r?\n/).map(function (l) { return l.replace(/[ \t\u00a0]+/g, ' ').trim(); }).join('\n').trim();
+  }
+  function shapeParas(sp) { return kids(child(sp, 'txBody'), 'p').map(paraText).filter(Boolean); }
+  function imageToDataURL(blob) {
+    return new Promise(function (resolve) {
+      var url = URL.createObjectURL(blob), img = new Image();
+      img.onload = function () {
+        var max = 1600, k = Math.min(1, max / Math.max(img.width, img.height));
+        var c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(img.width * k)); c.height = Math.max(1, Math.round(img.height * k));
+        var g = c.getContext('2d'); g.fillStyle = '#ffffff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, 0, 0, c.width, c.height);
+        var out = c.toDataURL('image/jpeg', 0.85);
+        if (out.length > 900000) out = c.toDataURL('image/jpeg', 0.7);
+        URL.revokeObjectURL(url); resolve(out);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); resolve(null); };
+      img.src = url;
+    });
+  }
+  function importPptx(buf, name) {
+    var zip, parser = new DOMParser();
+    function fail(msg) { var e = new Error(msg); e.tabbed = true; throw e; }
+    if (typeof window.JSZip !== 'function') fail('The PowerPoint library did not load. Check your connection once, then try again.');
+    function xml(path) {
+      var f = zip.file(path); if (!f) return Promise.resolve(null);
+      return f.async('string').then(function (s) { var doc = parser.parseFromString(s, 'application/xml'); return doc.getElementsByTagName('parsererror').length ? null : doc; });
+    }
+    function resolve(from, target) {
+      if (target.charAt(0) === '/') return target.slice(1);
+      var parts = from.split('/'); parts.pop();
+      target.split('/').forEach(function (p) { if (p === '..') parts.pop(); else if (p && p !== '.') parts.push(p); });
+      return parts.join('/');
+    }
+    function rels(path) {
+      var i = path.lastIndexOf('/'), relPath = path.slice(0, i) + '/_rels/' + path.slice(i + 1) + '.rels';
+      return xml(relPath).then(function (doc) {
+        var map = {};
+        kids(doc, 'Relationship').forEach(function (r) {
+          if (r.getAttribute('TargetMode') === 'External') return;
+          map[r.getAttribute('Id')] = { path: resolve(path, r.getAttribute('Target') || ''), type: r.getAttribute('Type') || '' };
+        });
+        return map;
+      });
+    }
+    function chartFrom(doc) {
+      if (!doc) return null;
+      var plot = kid(doc, 'plotArea'); if (!plot) return null;
+      var group = null;
+      for (var c = plot.firstElementChild; c; c = c.nextElementSibling) if (/Chart$/.test(c.localName) && kid(c, 'ser')) { group = c; break; }
+      if (!group) return null;
+      var ser = kid(group, 'ser'), labels = {}, data = [];
+      kids(child(ser, 'cat'), 'pt').forEach(function (pt) { var v = kid(pt, 'v'); if (v && !(pt.getAttribute('idx') in labels)) labels[pt.getAttribute('idx')] = tidy(v.textContent); });
+      kids(child(ser, 'val'), 'pt').forEach(function (pt) {
+        var v = kid(pt, 'v'), idx = pt.getAttribute('idx'), num = v ? Number(v.textContent) : NaN;
+        if (isFinite(num)) data.push({ idx: Number(idx), label: labels[idx] || String(Number(idx) + 1), value: num });
+      });
+      data.sort(function (a, b) { return a.idx - b.idx; });
+      if (!data.length) return null;
+      return { type: /^line/.test(group.localName) ? 'line' : 'bar', data: data.map(function (r) { return { label: r.label, value: r.value }; }) };
+    }
+    var skipped = { pics: 0, charts: 0 }, ownFile = false;
+    function readSlide(path) {
+      return Promise.all([xml(path), rels(path)]).then(function (res) {
+        var doc = res[0], rel = res[1], s = newSlide(''), texts = [], titleSet = false, pic = null, chartRel = null, extraPics = 0, extraCharts = 0;
+        if (!doc) return null;
+        var tree = kid(doc, 'spTree');
+        function pos(n) {
+          var off = kid(child(n, n.localName === 'graphicFrame' ? 'xfrm' : 'spPr') || n, 'off');
+          return off ? { y: Number(off.getAttribute('y')) || 0, x: Number(off.getAttribute('x')) || 0 } : { y: 0, x: 0 };
+        }
+        (function walk(node) {
+          for (var c = node && node.firstElementChild; c; c = c.nextElementSibling) {
+            var ln = c.localName;
+            if (ln === 'grpSp') walk(c);
+            else if (ln === 'sp') {
+              var ph = kid(child(c, 'nvSpPr'), 'ph'), type = ph ? (ph.getAttribute('type') || 'body') : '';
+              if (/^(sldNum|dt|ftr|hdr)$/.test(type)) continue;
+              var paras = shapeParas(c); if (!paras.length) continue;
+              if (!titleSet && (type === 'title' || type === 'ctrTitle')) { s.title = paras.join(' '); titleSet = true; }
+              else texts.push({ at: pos(c), paras: paras });
+            } else if (ln === 'pic') {
+              var id = rid(kid(c, 'blip'), 'embed');
+              if (!pic && id && rel[id]) pic = rel[id].path; else extraPics++;
+            } else if (ln === 'graphicFrame') {
+              var ch = kid(c, 'chart'), tbl = kid(c, 'tbl');
+              if (ch) { var cid = rid(ch, 'id'); if (!chartRel && rel[cid]) chartRel = rel[cid].path; else extraCharts++; }
+              else if (tbl) texts.push({ at: pos(c), paras: kids(tbl, 'tr').map(function (tr) { return kids(tr, 'tc').map(function (tc) { return kids(tc, 'p').map(paraText).filter(Boolean).join(' '); }).join(' | '); }).filter(function (t) { return t.replace(/[\s|]/g, ''); }) });
+            }
+          }
+        })(tree);
+        texts.sort(function (a, b) { return (a.at.y - b.at.y) || (a.at.x - b.at.x); });
+        /* No title placeholder (as in files saved by Tabbed Slides): the top text box is the title */
+        if (!titleSet && texts.length) s.title = texts.shift().paras.join(' ');
+        texts.forEach(function (t) { s.points = s.points.concat(t.paras); });
+        skipped.pics += extraPics; skipped.charts += extraCharts;
+        var notesRel = Object.keys(rel).map(function (k) { return rel[k]; }).find(function (r) { return /\/notesSlide$/.test(r.type); });
+        var jobs = [];
+        if (notesRel) jobs.push(xml(notesRel.path).then(function (nd) {
+          var body = kids(nd, 'sp').find(function (sp) { var ph = kid(child(sp, 'nvSpPr'), 'ph'); return ph && ph.getAttribute('type') === 'body'; });
+          if (body) s.notes = kids(child(body, 'txBody'), 'p').map(function (p) { return paraText(p, true); }).join('\n').trim();
+        }));
+        if (pic && /\.(png|jpe?g|gif|bmp|webp)$/i.test(pic) && zip.file(pic)) {
+          var ext = pic.split('.').pop().toLowerCase(), mime = 'image/' + (ext === 'jpg' ? 'jpeg' : ext);
+          jobs.push(zip.file(pic).async('arraybuffer').then(function (ab) { return imageToDataURL(new Blob([ab], { type: mime })); }).then(function (u) { if (u) s.image = u; else skipped.pics++; }));
+        } else if (pic) skipped.pics++;
+        if (chartRel) jobs.push(xml(chartRel).then(function (cd) { s.chart = chartFrom(cd); if (!s.chart) skipped.charts++; }));
+        return Promise.all(jobs).then(function () { s.accentColours = kids(doc, 'srgbClr').map(function (n) { return (n.getAttribute('val') || '').toUpperCase(); }); return s; });
+      });
+    }
+    return window.JSZip.loadAsync(buf).catch(function () { fail('This file could not be read as a PowerPoint (.pptx) file.'); }).then(function (z) {
+      zip = z;
+      if (!zip.file('ppt/presentation.xml')) fail('This file is not a PowerPoint presentation.');
+      return Promise.all([xml('ppt/presentation.xml'), rels('ppt/presentation.xml'), xml('docProps/core.xml'), xml('docProps/app.xml')]);
+    }).then(function (res) {
+      var pres = res[0], prel = res[1], core = res[2], app = res[3];
+      ownFile = !!(app && /Tabbed Slides/.test((kid(app, 'Company') || {}).textContent || ''));
+      var paths = kids(kid(pres, 'sldIdLst'), 'sldId').map(function (n) { var r = prel[rid(n, 'id')]; return r && r.path; }).filter(Boolean);
+      if (!paths.length) fail('This PowerPoint file has no slides.');
+      var title = tidy((kid(core, 'title') || {}).textContent || '') || name.replace(/\.pptx$/i, '');
+      return Promise.all(paths.map(readSlide)).then(function (slides) {
+        slides = slides.filter(Boolean);
+        if (!slides.length) fail('No slides could be read from this file.');
+        /* Theme: files saved by Tabbed Slides carry the theme colour on every slide */
+        var first = slides[0].accentColours || [], themeName = 'slate';
+        Object.keys(THEMES).some(function (k) { if (first.indexOf(THEMES[k].pptAccent) >= 0) { themeName = k; return true; } return false; });
+        slides.forEach(function (s) { delete s.accentColours; });
+        var note = ownFile ? '' : slides.length + (slides.length === 1 ? ' slide' : ' slides') + ' with titles, text, notes, pictures and charts. Layouts, shapes and animations were not kept.';
+        var left = [];
+        if (skipped.pics) left.push(skipped.pics + (skipped.pics === 1 ? ' picture' : ' pictures'));
+        if (skipped.charts) left.push(skipped.charts + (skipped.charts === 1 ? ' chart' : ' charts'));
+        if (left.length) note += (note ? ' ' : '') + 'Left out: ' + left.join(' and ') + ' (one of each per slide).';
+        return { deck: { id: uid(), title: title, theme: themeName, slides: slides, current: 0 }, note: note, ownFile: ownFile };
+      });
+    });
+  }
 
   /* HTML export: one file, with the same reveal keys */
   function htmlDeck(d) {
@@ -754,7 +1005,7 @@ body.ribbon-off nav.ribbon{display:none}
       '.sl li.hidden-step{visibility:hidden}.sl img{max-width:100%;max-height:100%;object-fit:contain;margin:0 auto;display:block}.sl svg{width:100%;height:auto}\n' +
       '.bar{position:fixed;bottom:10px;left:0;right:0;text-align:center;color:#dbe7f5;font:14px system-ui,sans-serif}\n' +
       '.credit{position:fixed;top:8px;left:12px;color:#dbe7f5;font:12px system-ui,sans-serif}\n' +
-      '</style>\n</head>\n<body>\n' + sections + '\n<div class="bar" id="bar"></div>\n<p class="credit">Made with Tabbed Slides (alpha) · Made by The Last Byzantine, MMXXVI. Sharing is love!</p>\n' +
+      '</style>\n</head>\n<body>\n' + sections + '\n<div class="bar" id="bar"></div>\n<p class="credit">Made with Tabbed Slides · Made by The Last Byzantine, MMXXVI. Sharing is love!</p>\n' +
       '<script>\n(function(){var s=[].slice.call(document.querySelectorAll(".slide")),i=0,step=0;\n' +
       'function show(n,st){i=Math.max(0,Math.min(s.length-1,n));step=st;s.forEach(function(x,k){x.classList.toggle("on",k===i);});\n' +
       'var lis=[].slice.call(s[i].querySelectorAll("li")),pts=lis.filter(function(li){return !li.classList.contains("ghost")});\n' +
@@ -770,14 +1021,11 @@ body.ribbon-off nav.ribbon{display:none}
   $('exporthtml').onclick = function () { var d = deck(); download(safeName(d.title) + '.html', htmlDeck(d), 'text/html;charset=utf-8'); setStatus('HTML file saved to your downloads', false); };
 
   /* PowerPoint export (PptxGenJS, MIT licence, bundled in vendor/) */
-  $('exportppt').onclick = function () {
-    var d = deck(), t = theme(d);
-    if (typeof window.PptxGenJS !== 'function') { alert('The PowerPoint library did not load. Check your connection once, then try again.'); return; }
-    setStatus('Building the PowerPoint file…', false);
-    try {
-      var pptx = new window.PptxGenJS();
+  function buildPptx(d) {
+      var t = theme(d), pptx = new window.PptxGenJS();
       pptx.layout = 'LAYOUT_WIDE';
       pptx.title = d.title;
+      pptx.company = 'Tabbed Slides';
       d.slides.forEach(function (s) {
         var sl = pptx.addSlide();
         sl.background = { color: t.pptPaper };
@@ -798,7 +1046,14 @@ body.ribbon-off nav.ribbon{display:none}
         }
         if (s.notes) sl.addNotes(s.notes);
       });
-      pptx.writeFile({ fileName: safeName(d.title) + '.pptx' }).then(function () {
+      return pptx;
+  }
+  $('exportppt').onclick = function () {
+    var d = deck();
+    if (typeof window.PptxGenJS !== 'function') { alert('The PowerPoint library did not load. Check your connection once, then try again.'); return; }
+    setStatus('Building the PowerPoint file…', false);
+    try {
+      buildPptx(d).writeFile({ fileName: safeName(d.title) + '.pptx' }).then(function () {
         setStatus('PowerPoint file saved to your downloads', false);
       }).catch(function (e) { setStatus('PowerPoint export failed: ' + (e.message || 'unknown error'), true); });
     } catch (e) { setStatus('PowerPoint export failed: ' + (e.message || 'unknown error'), true); }
@@ -885,7 +1140,7 @@ body.ribbon-off nav.ribbon{display:none}
   state = readStore() || (function () {
     var d = newDeck('Welcome deck');
     d.slides = [
-      { id: uid(), title: 'Tabbed Slides', points: ['Slides in your browser', 'One tab per deck', 'Points appear one by one in Present'], notes: 'Say hello and explain the alpha status.', image: null, chart: null },
+      { id: uid(), title: 'Tabbed Slides', points: ['Slides in your browser', 'One tab per deck', 'Points appear one by one in Present'], notes: 'Say hello and introduce the deck.', image: null, chart: null },
       { id: uid(), title: 'Sales by year', points: ['Growth in the last three years'], notes: '', image: null, chart: { type: 'bar', data: [{ label: '2023', value: 120 }, { label: '2024', value: 145 }, { label: '2025', value: 160 }] } }
     ];
     return { version: 1, activeId: d.id, decks: [d] };

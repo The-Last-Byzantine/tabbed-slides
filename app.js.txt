@@ -241,7 +241,7 @@
       '.sl li.hidden-step{visibility:hidden}.sl img{max-width:100%;max-height:100%;object-fit:contain;margin:0 auto;display:block}.sl svg{width:100%;height:auto}\n' +
       '.bar{position:fixed;bottom:10px;left:0;right:0;text-align:center;color:#cfe3da;font:14px system-ui,sans-serif}\n' +
       '.credit{position:fixed;top:8px;left:12px;color:#cfe3da;font:12px system-ui,sans-serif}\n' +
-      '</style>\n</head>\n<body>\n' + sections + '\n<div class="bar" id="bar"></div>\n<p class="credit">Made with Tabbed Slides (alpha) · Made by The Last Byzantine, MMXXVI. Sharing is love!</p>\n' +
+      '</style>\n</head>\n<body>\n' + sections + '\n<div class="bar" id="bar"></div>\n<p class="credit">Made with Tabbed Slides · Made by The Last Byzantine, MMXXVI. Sharing is love!</p>\n' +
       '<script>\n(function(){var s=[].slice.call(document.querySelectorAll(".slide")),i=0,step=0;\n' +
       'function show(n,st){i=Math.max(0,Math.min(s.length-1,n));step=st;s.forEach(function(x,k){x.classList.toggle("on",k===i);});\n' +
       'var lis=[].slice.call(s[i].querySelectorAll("li")),pts=lis.filter(function(li){return !li.classList.contains("ghost")});\n' +
@@ -353,7 +353,7 @@
   state = readStore() || (function () {
     var d = newDeck('Welcome deck');
     d.slides = [
-      { id: uid(), title: 'Tabbed Slides', points: ['Slides in your browser', 'One tab per deck', 'Points appear one by one in Present'], notes: 'Say hello and explain the alpha status.', image: null, chart: null },
+      { id: uid(), title: 'Tabbed Slides', points: ['Slides in your browser', 'One tab per deck', 'Points appear one by one in Present'], notes: 'Say hello and introduce the deck.', image: null, chart: null },
       { id: uid(), title: 'Sales by year', points: ['Growth in the last three years'], notes: '', image: null, chart: { type: 'bar', data: [{ label: '2023', value: 120 }, { label: '2024', value: 145 }, { label: '2025', value: 160 }] } }
     ];
     return { version: 1, activeId: d.id, decks: [d] };
