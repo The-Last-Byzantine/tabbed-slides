@@ -22,6 +22,8 @@ files are never uploaded.
 - Email all: saves every open deck to Google Drive as .pptx, then opens Gmail to attach them
 - Works offline after the first visit online
 
+Version 2026.11.11: Google Drive uses the narrower `drive.file` access: the app sees only files it created and files you pick in Google's file picker. Open from Google Drive opens that picker, sized to fit the window (also in Safari). The site now sends only its own address to other sites (`strict-origin-when-cross-origin`), which the picker's website-restricted key needs.
+
 Version 2026.11.9: the Tabbed Word look (flat Office 2003 palette, toolbar and File menu with the same icons), Google Drive, Email all, Folders and Comments.
 
 ## Running it
