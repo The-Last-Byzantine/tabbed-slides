@@ -6,7 +6,7 @@
 <title>Tabbed Slides</title>
 <meta name="description" content="Tabbed Slides. Build slides in your browser, present them, open and save PowerPoint, export HTML.">
 <meta name="referrer" content="no-referrer">
-<meta name="theme-color" content="#9a3412">
+<meta name="theme-color" content="#0A246A">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icons/tabbed-slides.svg" type="image/svg+xml">
 <link rel="icon" href="./icons/tabbed-slides-32.png" sizes="32x32" type="image/png">
@@ -79,9 +79,18 @@ footer .credit{margin:6px 0 0;color:#fde3cf}
 #present .pnotes{position:fixed;left:6vw;right:6vw;bottom:2vh;height:22vh;box-sizing:border-box;padding:10px 16px;overflow-y:auto;background:rgba(255,255,255,.08);border-radius:8px;color:#f3ece6;font-size:clamp(15px,1.6vw,22px);line-height:1.45;white-space:pre-wrap}
 #present.notes-on{padding:3vh 6vw calc(26vh + 10px)}
 #present.notes-on .pwrap{width:min(100%,calc(64vh*16/9))}
-#present .pclose{position:fixed;top:12px;right:14px;min-height:44px;padding:6px 14px;background:#fff;color:var(--header);border:0;border-radius:6px;cursor:pointer}
-#present .pnav{position:fixed;top:50%;transform:translateY(-50%);background:transparent;color:#fff;border:0;font-size:34px;padding:12px;cursor:pointer;min-width:44px;min-height:44px}
+#present .pclose{position:fixed;z-index:6;top:12px;right:14px;min-height:44px;padding:6px 14px;background:#fff;color:var(--header);border:0;border-radius:6px;cursor:pointer}
+#present .pnav{position:fixed;z-index:6;top:50%;transform:translateY(-50%);background:transparent;color:#fff;border:0;font-size:34px;padding:12px;cursor:pointer;min-width:44px;min-height:44px}
 #present .pnav.prev{left:6px}#present .pnav.next{right:6px}
+#present .pfull{position:fixed;z-index:6;top:12px;right:112px;min-width:44px;min-height:44px;padding:6px;display:grid;place-items:center;background:rgba(255,255,255,.14);color:#fff;border:0;border-radius:6px;cursor:pointer}
+#present .pfull:hover{background:rgba(255,255,255,.26)}
+#present .pfull svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#present .pfull[aria-pressed="true"]{background:#fff;color:var(--header)}
+#present.full{padding:0}
+#present.full .pwrap{width:min(100vw,calc(100vh*16/9))}
+#present.full .pbar{display:none}
+#present.full .pnotes{display:none!important}
+#present.full .pwrap .sl{padding:5% 6%}
 #printarea{display:none}
 @media print{
   body>*:not(#printarea){display:none!important}
@@ -470,56 +479,314 @@ aside.left,#slidelist li{contain:inline-size}
 body.no-deck main{display:none}
 </style>
 
+<style id="office-v2026-css">
+/* 2026.1.9: the Office 2003 look (title bar, menu bar, two toolbars, slides pane, workspace, task pane, status bar) */
+[hidden]{display:none!important}
+.ribtabs,nav.ribbon{display:none!important}
+html,body{background:#d4d0c8}
+body{font:12px Tahoma,"Segoe UI",system-ui,sans-serif;color:#000;margin:0;height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+body.no-deck{overflow:auto}
+#titlebar{flex:none;display:flex;align-items:center;gap:8px;height:28px;padding:0 8px;background:linear-gradient(90deg,#0a246a,#a6caf0);color:#fff;font:bold 13px Tahoma,"Segoe UI",sans-serif;user-select:none}
+#titlebar .count{margin-left:auto;font:400 11px Tahoma,sans-serif;opacity:.9}
+#officemenu{flex:none;display:flex;align-items:stretch;height:22px;padding:0 2px;background:#d4d0c8;border-bottom:1px solid #fff;user-select:none;overflow-x:auto}
+#officemenu button{border:0;background:none;padding:0 7px;font:inherit;color:#000;cursor:default;white-space:nowrap}
+#officemenu button:hover,#officemenu button[aria-expanded="true"]{background:#316ac5;color:#fff}
+#officemenu-pop{position:fixed;z-index:80;min-width:230px;padding:2px;background:#fff;border:1px solid #808080;box-shadow:2px 2px 0 #00000033;font:12px Tahoma,"Segoe UI",sans-serif;color:#000}
+#officemenu-pop button{position:relative;display:flex;justify-content:space-between;align-items:center;gap:24px;width:100%;min-height:22px;border:0;background:none;padding:3px 10px 3px 24px;text-align:left;font:inherit;color:inherit;cursor:default}
+#officemenu-pop button .k{color:#555;font-size:11px}
+#officemenu-pop button:hover:not(:disabled){background:#316ac5;color:#fff}
+#officemenu-pop button:hover:not(:disabled) .k{color:#fff}
+#officemenu-pop button:disabled{color:#8a8a8a}
+#officemenu-pop button.checked::before{content:"\2713";position:absolute;left:7px;top:2px}
+#officemenu-pop hr{border:0;height:1px;margin:2px 3px;background:#808080}
+#toolbars{flex:none;background:#d4d0c8;border-bottom:1px solid #808080;user-select:none;overflow-x:auto}
+#stdbar,#fmtbar{display:flex;align-items:center;gap:1px;min-height:28px;padding:2px 4px}
+#toolbars button{flex:none;display:inline-flex;align-items:center;gap:4px;min-width:26px;height:24px;padding:1px 3px;border:1px solid transparent;background:none;color:#000;font:11px Tahoma,"Segoe UI",sans-serif;cursor:default}
+#toolbars button svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#toolbars button:hover:not(:disabled){border-color:#fff #404040 #404040 #fff;background:#e9e7e1}
+#toolbars button[aria-pressed="true"]{border-color:#404040 #fff #fff #404040;background:#c8c5bd}
+#toolbars button:disabled{opacity:.4}
+#toolbars .sep{flex:none;width:1px;height:20px;margin:0 3px;background:#808080;box-shadow:1px 0 0 #fff}
+#zoomsel{height:22px;font:11px Tahoma,sans-serif;margin-left:2px}
+.pic-ph{display:block;flex:1 1 0;min-height:0;width:100%;background:linear-gradient(135deg,#c7d7ec,#9fb8d8);border:1px solid #6b86ad}
+.fmt-sw{display:inline-block;width:14px;height:14px;border:1px solid #404040;vertical-align:middle}
+.tabs{position:static;display:flex;gap:2px;overflow-x:auto;padding:4px 6px 0;background:#d4d0c8;align-items:flex-end;flex:none}
+main{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:190px minmax(0,1fr) 250px;background:#d4d0c8;border-top:1px solid #fff}
+main.no-tp{grid-template-columns:190px minmax(0,1fr)}
+aside.left{min-height:0;display:flex;flex-direction:column;background:#d4d0c8;border-right:1px solid #808080;overflow:hidden}
+.lptabs{flex:none;display:flex;gap:2px;padding:4px 4px 0;background:#d4d0c8;border-bottom:1px solid #808080}
+.lptabs button{flex:1;border:1px solid #808080;border-bottom:0;background:#e9e7e1;padding:3px 4px;font:11px Tahoma,sans-serif;color:#000;cursor:pointer;border-radius:3px 3px 0 0}
+.lptabs button[aria-selected="true"]{background:#fff;font-weight:700;margin-bottom:-1px}
+#slidelist,#outline{flex:1;min-height:0;overflow-y:auto;margin:0;padding:8px 8px 14px;list-style:none;display:grid;gap:8px;align-content:start;background:#a3a09a}
+#outline{display:block;background:#fff;padding:0;margin:0}
+#slidelist .slide-item{display:block;width:100%;padding:3px;border:1px solid transparent;background:none;color:#000;text-align:left;cursor:pointer;position:relative}
+#slidelist .slide-item .num{position:absolute;left:0;top:4px;width:14px;font-size:11px;color:#000;text-align:right;text-shadow:0 0 2px #fff}
+#slidelist .slide-item .thumb{margin-left:18px}
+#slidelist .slide-item.current{border-color:#316ac5;background:#c0d4f0}
+#slidelist .slide-item .name{display:none}
+.thumb{position:relative;width:calc(1280px * var(--ts,.135));height:calc(720px * var(--ts,.135));overflow:hidden;background:#fff;box-shadow:0 0 0 1px #6b6b6b;pointer-events:none}
+.thumb-in{position:absolute;left:0;top:0;width:1280px;height:720px;transform:scale(var(--ts,.135));transform-origin:0 0}
+.thumb-in .sl{font-size:16px}
+.thumb .vid{pointer-events:none}
+.ol-item{display:flex;gap:8px;width:100%;padding:8px 10px;border:0;border-bottom:1px solid #e3e3e3;background:none;text-align:left;font:12px Tahoma,sans-serif;color:#000;cursor:pointer}
+.ol-item.current{background:#316ac5;color:#fff}
+.ol-n{flex:none;width:18px;color:#666}
+.ol-item.current .ol-n{color:#fff}
+.ol-t{display:flex;flex-direction:column;min-width:0}
+.ol-p{white-space:pre;overflow:hidden;text-overflow:ellipsis;color:#555;font-size:11px;margin-top:2px}
+.ol-item.current .ol-p{color:#dce8ff}
+section.editor{min-height:0;min-width:0;overflow:auto;padding:16px 20px 18px;display:flex;flex-direction:column;gap:12px;background:#9c9a94}
+section.editor > .help{margin:0;color:#000;background:#fff;border:1px solid #808080;padding:4px 8px;font-size:12px}
+.stage{aspect-ratio:16/9;width:calc(min(100%,900px) * var(--zoom,1));max-width:none;flex:none;margin:0 auto;background:#fff;border:1px solid #404040;border-top:1px solid #404040;box-shadow:3px 3px 0 #00000040}
+.stage:not(.free) .sl{border-top:0}
+.stage:not(.free) .sl.arr{border-top:0}
+#notesbox{flex:none;width:calc(min(100%,900px) * var(--zoom,1));margin:0 auto;background:#fff;border:1px solid #808080;padding:8px}
+#notesbox label{color:#000;font-size:11px}
+#notesbox textarea{width:100%;min-height:90px;border:1px solid #808080;background:#fff;padding:6px;font:13px/1.45 Tahoma,"Segoe UI",sans-serif;box-sizing:border-box}
+.sorter{flex:1;min-height:0;overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;align-content:start;padding:8px}
+.so-item{display:flex;flex-direction:column;gap:4px;padding:6px;border:2px solid transparent;background:none;cursor:pointer;color:#000}
+.so-item.current{border-color:#ffd24a;background:#ffffff33}
+.so-item .thumb{--ts:.18!important}
+.so-n{font-size:11px;color:#000}
+aside.right#taskpane{min-height:0;display:flex;flex-direction:column;background:#fff;border-left:1px solid #808080;overflow:hidden}
+.tp-head{flex:none;display:flex;align-items:center;justify-content:space-between;gap:6px;padding:6px 8px;background:linear-gradient(90deg,#0a246a,#a6caf0);color:#fff;font:bold 12px Tahoma,sans-serif}
+.tp-head button{border:1px solid #fff;background:#d4d0c8;color:#000;width:20px;height:18px;padding:0;font:bold 12px/1 Tahoma,sans-serif;cursor:pointer}
+.tp-sel{flex:none;margin:6px 8px 0;width:calc(100% - 16px);height:24px;font:12px Tahoma,sans-serif}
+.tp-body{flex:1;min-height:0;overflow-y:auto;padding:10px 10px 16px}
+.tp-body h3{margin:12px 0 6px;font:bold 12px Tahoma,sans-serif;color:#0a246a}
+.tp-body label{font-size:11px;color:#000;display:block;margin-bottom:3px}
+.tp-body input[type=text]{width:100%;box-sizing:border-box;height:24px;border:1px solid #7f9db9;font:12px Tahoma,sans-serif;padding:2px 4px}
+.help{font-size:11px;color:#333;margin:0 0 8px;line-height:1.4}
+.gal{display:block}
+.gal-item{position:relative;display:flex;flex-direction:column;align-items:stretch;width:100%;margin:0 0 10px;padding:4px;border:1px solid transparent;background:none;text-align:left;cursor:pointer;color:#000}
+.gal-item:hover{border-color:#b6c9e6;background:#eef4fc}
+.gal-item[aria-pressed="true"]{border-color:#316ac5;background:#c0d4f0}
+.gal-item .thumb{--ts:.125!important;align-self:center}
+.gal-cap{font:11px Tahoma,sans-serif;margin-top:4px}
+.gal-badge{position:absolute;right:6px;top:6px;background:#316ac5;color:#fff;font:10px Tahoma,sans-serif;padding:1px 4px}
+.tp-btn{height:26px;padding:0 10px;border:1px solid #003c74;background:linear-gradient(#fff,#ece9d8);font:12px Tahoma,sans-serif;cursor:pointer}
+.tiles{display:grid;gap:6px}
+.theme-tile{display:flex;align-items:center;gap:8px;width:100%;padding:4px;border:1px solid transparent;background:none;text-align:left;font:12px Tahoma,sans-serif;color:#000;cursor:pointer}
+.theme-tile:hover{border-color:#b6c9e6}
+.theme-tile[aria-pressed="true"]{border-color:#316ac5;background:#c0d4f0}
+.theme-tile .sw{display:block;width:34px;height:24px;border:1px solid #666;flex:none}
+#spelllist{margin:0;padding-left:18px;font-size:12px}
+#chartbox label{font-size:11px;color:#000}
+#chartbox textarea{width:100%;box-sizing:border-box;border:1px solid #7f9db9;font:12px Tahoma,sans-serif;padding:4px}
+footer.bottombar{flex:none;position:static;display:flex;align-items:center;gap:10px;min-height:22px;padding:2px 6px;background:#d4d0c8;color:#000;border-top:1px solid #808080;font:11px Tahoma,"Segoe UI",sans-serif;user-select:none}
+footer.bottombar,footer{background:#d4d0c8}
+#dinfo{min-width:170px}
+#autosave{color:#000}
+#themelabel{color:#000;border-left:1px solid #808080;padding-left:8px}
+.sbviews{display:flex;gap:2px;margin-right:4px;border-right:1px solid #808080;padding-right:6px}
+.sbviews button{width:22px;height:18px;padding:0;border:1px solid transparent;background:none;cursor:pointer;display:grid;place-items:center;color:#000}
+.sbviews button span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.sbviews button svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round}
+.sbviews button[aria-pressed="true"]{border-color:#404040 #fff #fff #404040;background:#c8c5bd}
+.ver{margin-left:auto;color:#000}
+.ver{margin-left:auto;color:#000!important}
+/* 2026.1.9: deck tabs in the gray Office palette */
+.tab-wrap{background:#d4d0c8;border:1px solid #808080;border-bottom:0;border-radius:3px 3px 0 0;margin-right:1px}
+.tab-wrap.active{background:#fff;border-color:#808080}
+.tab-wrap button{color:#000;font:11px Tahoma,"Segoe UI",sans-serif;min-height:24px;padding:3px 10px}
+.tab-wrap .close{color:#000;padding:3px 8px}
+.tab-wrap button:hover{background:#e9e7e1}
+.tab-add{background:#d4d0c8}
+.tab-add button{color:#000;font-size:15px;min-width:30px;font-weight:700}
+.tabs{border-bottom:1px solid #808080}
+.sl.arr h2{white-space:normal}
+dialog.about-dialog{border:1px solid #404040;border-radius:0;padding:14px 16px;background:#d4d0c8;color:#000;max-width:560px;width:calc(100% - 32px);font:12px Tahoma,"Segoe UI",sans-serif;box-shadow:4px 4px 0 #00000040}
+dialog.about-dialog::backdrop{background:rgba(0,0,0,.2)}
+dialog.about-dialog h2{margin:0 0 8px;font:bold 14px Tahoma,sans-serif;color:#0a246a}
+dialog.about-dialog label{display:block;font-size:12px;margin:6px 0 3px}
+dialog.about-dialog input[type=text]{width:100%;box-sizing:border-box;height:24px;border:1px solid #7f9db9;padding:2px 4px;font:13px Tahoma,sans-serif;background:#fff}
+dialog.about-dialog .dlg-btns{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;margin-top:12px}
+dialog.about-dialog button{min-width:80px;height:24px;padding:0 10px;border:1px solid #003c74;border-radius:3px;background:linear-gradient(#fff,#ece9d8);font:12px Tahoma,sans-serif;color:#000;cursor:pointer}
+dialog.about-dialog button.primary{box-shadow:inset 0 0 0 1px #316ac5}
+dialog.about-dialog::backdrop{background:rgba(0,0,0,.2)}
+#aboutbody .rsec-about{display:block}
+#aboutbody .rsec-about h3{margin-top:12px;font:bold 12px Tahoma,sans-serif;color:#0a246a}
+#aboutbody .rsec-about .help{color:#000}
+#aboutbody .rsec-about .ah{width:14px;height:14px;vertical-align:-2px}
+dialog.about-dialog form{margin-top:12px;text-align:right}
+table.keys{border-collapse:collapse;width:100%;font-size:12px}
+table.keys td{padding:4px 6px;border-bottom:1px solid #b0aca4;vertical-align:top}
+table.keys td:first-child{white-space:nowrap;font-weight:700}
+@media (max-width:760px){
+  main,main.no-tp{grid-template-columns:minmax(0,1fr)}
+  aside.left{max-height:170px;border-right:0;border-bottom:1px solid #808080}
+  #taskpane{border-left:0;border-top:1px solid #808080;max-height:60vh}
+  #stdbar,#fmtbar{flex-wrap:wrap}
+}
+</style>
+<style id="video-v2026-css">
+.vid{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:4px;overflow:hidden;flex:none}
+.vid iframe,.vid video{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+.vid[data-vkey],.vid[data-ytid]{display:flex;align-items:center;justify-content:center;color:#fde3cf;font-size:13px;padding:8px;text-align:center}
+</style>
+<style id="tabbedword-look-v2026-11-8">
+/* 2026.11.8: the Tabbed Word look. Same palette, flat toolbars, File menu, dialogs and status bar as Tabbed Word 2026.11.76. */
+:root{--o3-navy:#0A246A;--o3-canvas:#9C9A95;--o3-face:#D4D0C8;--o3-light:#fff;--o3-shadow:#808080;--o3-dark:#404040;--o3-sel:#C1D2EE;--o3-selb:#316AC5;--o3-hover:#E9E7E2;--o3-grad:linear-gradient(90deg,#0A246A,#A6CAF0);--o3-ui:Tahoma,Verdana,"Segoe UI",sans-serif}
+html,body{background:var(--o3-canvas)!important}
+#titlebar{background:var(--o3-grad)!important;color:#fff!important;font:700 15px/22px var(--o3-ui)!important;padding:5px 8px!important}
+#titlebar #titletext{color:#fff!important}
+#officemenu{background:var(--o3-face)!important;border-bottom:1px solid var(--o3-shadow)!important;box-shadow:0 1px 0 #fff!important;color:#000!important;font:13px var(--o3-ui)!important}
+#officemenu button{color:#000!important;border-radius:0!important}
+#officemenu button:hover,#officemenu button[aria-expanded="true"]{background:var(--o3-sel)!important;color:#000!important;outline:1px solid var(--o3-selb);outline-offset:-1px}
+#officemenu-pop{background:#F9F8F7!important;border:1px solid var(--o3-shadow)!important;border-radius:0!important;box-shadow:2px 2px 0 rgba(0,0,0,.25)!important;color:#000!important;font-family:var(--o3-ui)!important}
+#officemenu-pop button:hover:not(:disabled){background:var(--o3-sel)!important;color:#000!important;outline:1px solid var(--o3-selb);outline-offset:-1px}
+#officemenu-pop button:hover:not(:disabled) .k,#officemenu-pop button .k{color:#000!important}
+#officemenu-pop button:disabled{color:#A0A0A0!important}
+#officemenu-pop hr{background:#A6A6A6!important}
+#toolbars{background:var(--o3-face);border-bottom:1px solid var(--o3-shadow);box-shadow:0 1px 0 #fff}
+#toolbars button{background:transparent!important;border:1px solid transparent!important;border-radius:0!important;color:#000!important;box-shadow:none!important}
+#toolbars button:hover:not(:disabled){background:transparent!important;border-color:var(--o3-light) var(--o3-shadow) var(--o3-shadow) var(--o3-light)!important}
+#toolbars button:active:not(:disabled),#toolbars button[aria-pressed="true"]{background:var(--o3-hover)!important;border-color:var(--o3-dark) var(--o3-light) var(--o3-light) var(--o3-dark)!important}
+#toolbars button:disabled svg{opacity:.4}
+#toolbars .sep{width:0!important;margin:0 3px!important;background:none!important;border-left:1px solid var(--o3-shadow)!important;border-right:1px solid var(--o3-light)!important}
+#zoomsel{background:#fff!important;border:1px solid!important;border-color:var(--o3-shadow) var(--o3-light) var(--o3-light) var(--o3-shadow)!important;border-radius:0!important;color:#000!important}
+main{background:var(--o3-face)!important}
+.editor,#emptystart{background:var(--o3-canvas)!important}
+#emptystart,#emptystart p{color:#000!important}
+#emptystart button{background:var(--o3-face)!important;color:#000!important;border:1px solid!important;border-color:var(--o3-light) var(--o3-dark) var(--o3-dark) var(--o3-light)!important;border-radius:0!important;box-shadow:inset -1px -1px 0 var(--o3-shadow)!important}
+#emptystart button.primary{outline:1px solid #000;outline-offset:0}
+footer.bottombar{background:var(--o3-face)!important;color:#000!important;border-top:1px solid var(--o3-light)!important;box-shadow:0 -1px 0 var(--o3-shadow)!important;font-family:var(--o3-ui)!important}
+footer.bottombar .status,#drivestate{color:#000!important}
+#drivestate{font-weight:400;white-space:nowrap}
+dialog{background:var(--o3-face)!important;color:#000!important;border:1px solid!important;border-color:var(--o3-face) var(--o3-dark) var(--o3-dark) var(--o3-face)!important;border-radius:0!important;box-shadow:inset 1px 1px 0 #fff,inset -1px -1px 0 var(--o3-shadow),3px 3px 0 rgba(0,0,0,.25)!important;font-family:var(--o3-ui)!important}
+dialog>h2:first-child{background:var(--o3-grad)!important;color:#fff!important;font:700 13px/20px var(--o3-ui)!important;margin:-1px -1px 10px!important;padding:2px 6px!important}
+dialog button{background:var(--o3-face)!important;color:#000!important;border:1px solid!important;border-color:var(--o3-light) var(--o3-dark) var(--o3-dark) var(--o3-light)!important;border-radius:0!important;box-shadow:inset -1px -1px 0 var(--o3-shadow)!important}
+dialog button:active{border-color:var(--o3-dark) var(--o3-light) var(--o3-light) var(--o3-dark)!important}
+dialog button.primary{outline:1px solid #000;outline-offset:0}
+dialog input,dialog textarea,dialog select{background:#fff!important;color:#000!important;border:1px solid!important;border-color:var(--o3-shadow) var(--o3-light) var(--o3-light) var(--o3-shadow)!important;border-radius:0!important}
+::selection{background:#B4CCF0;color:#000}
+::-webkit-scrollbar-track{background:#ECEBE6}
+::-webkit-scrollbar-thumb{background:var(--o3-face);border:1px solid;border-color:#fff var(--o3-dark) var(--o3-dark) #fff}
+</style>
+<style id="folders-comments-v2026-11-9">
+/* 2026.11.9: Folders (left pane), Comments (task pane) and Email all, in the Tabbed Word look */
+#folderlist{flex:1;min-height:0;display:flex;flex-direction:column;gap:4px;padding:6px;background:#d4d0c8;overflow:hidden}
+#folderlist[hidden]{display:none}
+#folderlist .fl-row{display:flex;gap:4px;align-items:center;flex:none}
+#folderlist .fl-name{flex:1;min-width:0;font:bold 11px Tahoma,"Segoe UI",sans-serif;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#folderlist .fl-row label,#folderlist .fl-note{font:11px Tahoma,"Segoe UI",sans-serif;color:#000;margin:0}
+#folderlist select{max-width:120px;min-width:0;font:11px Tahoma,sans-serif;background:#fff;color:#000;border:1px solid;border-color:var(--o3-shadow) var(--o3-light) var(--o3-light) var(--o3-shadow);border-radius:0}
+#folderlist button{font:11px Tahoma,sans-serif;background:var(--o3-face);color:#000;border:1px solid;border-color:var(--o3-light) var(--o3-dark) var(--o3-dark) var(--o3-light);border-radius:0;padding:2px 6px;box-shadow:inset -1px -1px 0 var(--o3-shadow);cursor:default}
+#folderlist button:active{border-color:var(--o3-dark) var(--o3-light) var(--o3-light) var(--o3-dark)}
+#fllist{flex:1;min-height:0;overflow-y:auto;margin:0;padding:0;list-style:none;background:#fff;border:1px solid;border-color:var(--o3-shadow) var(--o3-light) var(--o3-light) var(--o3-shadow)}
+#fllist li button{display:block;width:100%;text-align:left;border:0;background:none;padding:3px 6px;font:12px Tahoma,"Segoe UI",sans-serif;color:#000;box-shadow:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#fllist li button:hover{background:var(--o3-sel)}
+#fllist li button[aria-current="true"]{background:var(--o3-selb);color:#fff}
+.cm-list{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px}
+.cm-item{background:#fff;border:1px solid var(--o3-shadow);padding:6px;font:12px Tahoma,"Segoe UI",sans-serif;color:#000}
+.cm-item .cm-meta{font-size:11px;color:#404040;margin-bottom:3px}
+.cm-item button{font:11px Tahoma,sans-serif;margin-top:4px;background:var(--o3-face);color:#000;border:1px solid;border-color:var(--o3-light) var(--o3-dark) var(--o3-dark) var(--o3-light);border-radius:0;padding:1px 8px;box-shadow:inset -1px -1px 0 var(--o3-shadow)}
+#cmtext{width:100%;min-height:70px;font:12px Tahoma,"Segoe UI",sans-serif;box-sizing:border-box;background:#fff;color:#000;border:1px solid;border-color:var(--o3-shadow) var(--o3-light) var(--o3-light) var(--o3-shadow);border-radius:0;padding:4px}
+</style>
 </head>
 <body>
-<header>
-  <div>
-    <h1>Tabbed Slides</h1>
-    <p>Slides for presentations, one tab per deck. Everything stays in this browser.</p>
-  </div>
-  <span class="count" id="deckcount"></span>
-</header>
+<div id="titlebar"><span id="titletext">Tabbed Slides</span><span class="count" id="deckcount"></span></div>
+<div id="officemenu" role="menubar" aria-label="Menu bar"></div>
+<div id="toolbars"><div id="stdbar" role="toolbar" aria-label="Standard"></div><div id="fmtbar" role="toolbar" aria-label="Formatting"></div></div>
 
 <div class="ribtabs" role="tablist" aria-label="Ribbon sections"><button type="button" class="rtab" role="tab" data-sec="Home" aria-selected="true">Home</button><button type="button" class="rtab" role="tab" data-sec="Slide" aria-selected="false">Slide</button><button type="button" class="rtab" role="tab" data-sec="Insert" aria-selected="false">Insert</button><button type="button" class="rtab" role="tab" data-sec="Review" aria-selected="false">Review</button><button type="button" class="rtab" role="tab" data-sec="Design" aria-selected="false">Design</button><button type="button" class="rtab" role="tab" data-sec="Export" aria-selected="false">Export</button><button type="button" class="rtab" role="tab" data-sec="About" aria-selected="false">About</button></div>
-<nav class="ribbon" aria-label="Deck actions"><section class="rsec" data-sec="Home" role="tabpanel"><button type="button" id="newdeck" title="New deck" aria-label="New deck"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M12 11v6M9 14h6"/></svg></button><button type="button" id="opendeck" title="Open file (.json or PowerPoint .pptx)  Ctrl+O" aria-label="Open file"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></button><button type="button" id="savedeck" title="Save file in the format it was opened in  Ctrl+S" aria-label="Save file"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h11l3 3v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M8 3v5h7V3M8 21v-7h8v7"/></svg></button><button type="button" id="savepptx" title="Save as PowerPoint (.pptx)" aria-label="Save as PowerPoint (.pptx)"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h11l3 3v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M9 17v-6h2.5a2 2 0 0 1 0 4H9"/></svg></button><span class="rsep" aria-hidden="true"></span><button type="button" id="presentbtn" class="primary" title="Present" aria-label="Present"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M10 7.5v4.5l3.6-2.25z"/><path d="M12 16v4M8 20h8"/></svg></button><span class="rsep" aria-hidden="true"></span><button type="button" id="discardall" title="Discard all decks" aria-label="Discard all decks"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></section><section class="rsec" data-sec="Slide" role="tabpanel" hidden><button type="button" id="addslide" title="New slide after this one" aria-label="New slide after this one"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="13" rx="1.5"/><path d="M12 7.5v6M9 10.5h6"/></svg></button><button type="button" id="dupslide" title="Copy this slide" aria-label="Copy this slide"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="1.5"/><path d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-9A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16H8"/></svg></button><button type="button" id="delslide" title="Delete this slide" aria-label="Delete this slide"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button><span class="rsep" aria-hidden="true"></span><button type="button" id="upslide" title="Move slide up" aria-label="Move slide up"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button><button type="button" id="downslide" title="Move slide down" aria-label="Move slide down"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg></button></section><section class="rsec" data-sec="Insert" role="tabpanel" hidden><button type="button" id="addpic" title="Add picture to this slide" aria-label="Add picture to this slide"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M4 17l5-5 4 4 3-3 4 4"/><circle cx="15.5" cy="8.5" r="1.5"/></svg></button><button type="button" id="delpic" title="Remove picture" aria-label="Remove picture"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M4 17l5-5 4 4 3-3 4 4"/><circle cx="15.5" cy="8.5" r="1.5"/><path d="M3 3l18 18"/></svg></button><span class="rsep" aria-hidden="true"></span><label class="rlabel" for="chartkind"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V4M4 20h16"/><path d="M8 16v-5M12 16V8M16 16v-3"/></svg><span class="sr">Chart</span></label><select id="chartkind" title="Chart on this slide"><option value="none">No chart</option><option value="bar">Bar chart</option><option value="line">Line chart</option></select></section><section class="rsec" data-sec="Review" role="tabpanel" hidden><label class="rcheck"><input type="checkbox" id="spellon" checked> Check spelling (English, Greek, Turkish)</label><span class="status" id="spellstate" role="status" aria-live="polite"></span></section><section class="rsec" data-sec="Design" role="tabpanel" hidden><label class="rlabel" for="theme"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="8" cy="10" r="1.3"/><circle cx="12" cy="7.5" r="1.3"/><circle cx="16" cy="10" r="1.3"/><path d="M12 21a2.5 2.5 0 0 1 0-5h2a2.5 2.5 0 0 0 0-5"/></svg><span>Theme</span></label><select id="theme" title="Colour theme for this deck"><option value="slate">Dark blue (default)</option><option value="orange">Dark yellow</option><option value="green">Green</option><option value="ink">Ink blue</option><option value="sand">Sand</option></select></section><section class="rsec" data-sec="Export" role="tabpanel" hidden><button type="button" id="exporthtml" title="Export HTML: one file for any browser" aria-label="Export HTML: one file for any browser"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 8l-4 4 4 4M16 8l4 4-4 4M14 5l-4 14"/></svg></button><button type="button" id="exportppt" title="Export PowerPoint (.pptx)" aria-label="Export PowerPoint (.pptx)"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4M8 9h8M8 12h5"/></svg></button><button type="button" id="printdeck" title="Print or save as PDF" aria-label="Print or save as PDF"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9V3h10v6"/><rect x="4" y="9" width="16" height="8" rx="1.5"/><path d="M7 14h10v7H7z"/></svg></button></section><section class="rsec rsec-about" data-sec="About" role="tabpanel" hidden><div><h3><svg class="ah" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg>Keys in Present</h3><p class="help">→ or Space: next point, then next slide<br>← : previous point or slide<br>N: show or hide speaker notes<br>Esc: close</p></div><div><h3><svg class="ah" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.5h.01"/></svg>About Tabbed Slides</h3><p class="help">Version 2.0.2. For presentations. Video, animations between slides and advanced layouts are not supported yet.<br>Open file reads Tabbed Slides (.json) and PowerPoint (.pptx) files. PowerPoint slides keep their layout: text boxes, shapes, lines, pictures, tables, charts and speaker notes stay where they were, and you can change any text on the slide. Animations, videos and SmartArt are not shown, and pictures cannot yet be moved on these slides. Save file saves in the format the deck was opened in; Save as PowerPoint saves a .pptx. In Chrome and Edge, Save writes back into the same file; in other browsers it goes to your downloads. After the first visit online, the app also works offline. Export HTML makes one file for any browser, with the same reveal keys. Export PowerPoint makes a .pptx file with editable charts and notes. Pictures are resized in your browser before saving.</p></div><div><h3><svg class="ah" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>Made by</h3><p class="help">The Last Byzantine, MMXXVI. Sharing is love!</p><p class="help">For any bug or suggestion, please contact me at <a href="mailto:thelastbyzantine@proton.me">thelastbyzantine@proton.me</a>.</p><p class="help">Source code and updates: <a href="https://github.com/The-Last-Byzantine/tabbed-slides" target="_blank" rel="noopener">github.com/The-Last-Byzantine/tabbed-slides</a></p></div></section><input type="file" id="filein" accept=".json,.pptx,application/json,application/vnd.openxmlformats-officedocument.presentationml.presentation" hidden><input type="file" id="imgin" accept="image/*" hidden></nav>
+<nav class="ribbon" aria-label="Deck actions"><section class="rsec" data-sec="Home" role="tabpanel"><button type="button" id="opendrive" title="Open from Google Drive" aria-label="Open from Google Drive">Open Drive</button><button type="button" id="savedrive" title="Save to Google Drive" aria-label="Save to Google Drive">Save Drive</button><button type="button" id="emailall" title="Email all open decks" aria-label="Email all open decks">Email all</button><button type="button" id="newdeck" title="New deck" aria-label="New deck"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M12 11v6M9 14h6"/></svg></button><button type="button" id="opendeck" title="Open file (.json or PowerPoint .pptx)  Ctrl+O" aria-label="Open file"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></button><button type="button" id="savedeck" title="Save file in the format it was opened in  Ctrl+S" aria-label="Save file"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h11l3 3v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M8 3v5h7V3M8 21v-7h8v7"/></svg></button><button type="button" id="savepptx" title="Save as PowerPoint (.pptx)" aria-label="Save as PowerPoint (.pptx)"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h11l3 3v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M9 17v-6h2.5a2 2 0 0 1 0 4H9"/></svg></button><span class="rsep" aria-hidden="true"></span><button type="button" id="presentbtn" class="primary" title="Present" aria-label="Present"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M10 7.5v4.5l3.6-2.25z"/><path d="M12 16v4M8 20h8"/></svg></button><span class="rsep" aria-hidden="true"></span><button type="button" id="discardall" title="Discard all decks" aria-label="Discard all decks"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></section><section class="rsec" data-sec="Slide" role="tabpanel" hidden><button type="button" id="addslide" title="New slide after this one" aria-label="New slide after this one"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="13" rx="1.5"/><path d="M12 7.5v6M9 10.5h6"/></svg></button><button type="button" id="dupslide" title="Copy this slide" aria-label="Copy this slide"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="1.5"/><path d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-9A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16H8"/></svg></button><button type="button" id="delslide" title="Delete this slide" aria-label="Delete this slide"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button><span class="rsep" aria-hidden="true"></span><button type="button" id="upslide" title="Move slide up" aria-label="Move slide up"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button><button type="button" id="downslide" title="Move slide down" aria-label="Move slide down"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg></button></section><section class="rsec" data-sec="Insert" role="tabpanel" hidden><button type="button" id="addpic" title="Add picture to this slide" aria-label="Add picture to this slide"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M4 17l5-5 4 4 3-3 4 4"/><circle cx="15.5" cy="8.5" r="1.5"/></svg></button><button type="button" id="delpic" title="Remove picture" aria-label="Remove picture"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M4 17l5-5 4 4 3-3 4 4"/><circle cx="15.5" cy="8.5" r="1.5"/><path d="M3 3l18 18"/></svg></button><span class="rsep" aria-hidden="true"></span><button type="button" id="addvideo" title="Add a video file to this slide" aria-label="Add a video file to this slide"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9.5v5l4.5-2.5z"/></svg></button><button type="button" id="addyt" title="Add a YouTube video to this slide" aria-label="Add a YouTube video to this slide"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3z"/><path d="M10 9.5v5l4.5-2.5z"/></svg></button><button type="button" id="delvideo" title="Remove video" aria-label="Remove video"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M4 19L20 5"/></svg></button><span class="rsep" aria-hidden="true"></span><label class="rlabel" for="chartkind"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V4M4 20h16"/><path d="M8 16v-5M12 16V8M16 16v-3"/></svg><span class="sr">Chart</span></label><select id="chartkind" title="Chart on this slide"><option value="none">No chart</option><option value="bar">Bar chart</option><option value="line">Line chart</option></select></section><section class="rsec" data-sec="Review" role="tabpanel" hidden><label class="rcheck"><input type="checkbox" id="spellon" checked> Check spelling (English, Greek, Turkish)</label><span class="status" id="spellstate" role="status" aria-live="polite"></span></section><section class="rsec" data-sec="Design" role="tabpanel" hidden><label class="rlabel" for="theme"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="8" cy="10" r="1.3"/><circle cx="12" cy="7.5" r="1.3"/><circle cx="16" cy="10" r="1.3"/><path d="M12 21a2.5 2.5 0 0 1 0-5h2a2.5 2.5 0 0 0 0-5"/></svg><span>Theme</span></label><select id="theme" title="Colour theme for this deck"><option value="slate">Dark blue (default)</option><option value="orange">Dark yellow</option><option value="green">Green</option><option value="ink">Ink blue</option><option value="sand">Sand</option></select></section><section class="rsec" data-sec="Export" role="tabpanel" hidden><button type="button" id="exporthtml" title="Export HTML: one file for any browser" aria-label="Export HTML: one file for any browser"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 8l-4 4 4 4M16 8l4 4-4 4M14 5l-4 14"/></svg></button><button type="button" id="exportppt" title="Export PowerPoint (.pptx)" aria-label="Export PowerPoint (.pptx)"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4M8 9h8M8 12h5"/></svg></button><button type="button" id="printdeck" title="Print or save as PDF" aria-label="Print or save as PDF"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9V3h10v6"/><rect x="4" y="9" width="16" height="8" rx="1.5"/><path d="M7 14h10v7H7z"/></svg></button></section><section class="rsec rsec-about" data-sec="About" role="tabpanel" hidden><div><h3><svg class="ah" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg>Keys in Present</h3><p class="help">→ or Space: next point, then next slide<br>← : previous point or slide<br>N: show or hide speaker notes<br>Esc: close</p></div><div><h3><svg class="ah" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.5h.01"/></svg>About Tabbed Slides</h3><p class="help">Version 2026.1.12. For presentations. Format, Animate Points fades bullets in one click at a time, in Present and in PowerPoint. Rectangles, ellipses, lines and arrows can be drawn, moved and resized, and they export to PowerPoint as shapes. Video, animations between slides and advanced layouts are not supported yet.<br>Open file reads Tabbed Slides (.json) and PowerPoint (.pptx) files. PowerPoint slides keep their layout: text boxes, shapes, lines, pictures, tables, charts and speaker notes stay where they were, and you can change any text on the slide. Animations, videos and SmartArt are not shown, and pictures cannot yet be moved on these slides. Save file saves in the format the deck was opened in; Save as PowerPoint saves a .pptx. In Chrome and Edge, Save writes back into the same file; in other browsers it goes to your downloads. After the first visit online, the app also works offline. Export HTML makes one file for any browser, with the same reveal keys. Export PowerPoint makes a .pptx file with editable charts and notes. Pictures are resized in your browser before saving.</p></div><div><h3><svg class="ah" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>Made by</h3><p class="help">The Last Byzantine, MMXXVI. Sharing is love!</p><p class="help">For any bug or suggestion, please contact me at <a href="mailto:thelastbyzantine@proton.me">thelastbyzantine@proton.me</a>.</p><p class="help">Source code and updates: <a href="https://github.com/The-Last-Byzantine/tabbed-slides" target="_blank" rel="noopener">github.com/The-Last-Byzantine/tabbed-slides</a></p></div></section><input type="file" id="filein" accept=".json,.pptx,application/json,application/vnd.openxmlformats-officedocument.presentationml.presentation" hidden><input type="file" id="imgin" accept="image/*" hidden><input type="file" id="vidin" accept="video/*,.mp4,.webm,.ogv,.mov,.m4v" hidden></nav>
 
 <div id="tabs" class="tabs" role="tablist" aria-label="Open decks"></div>
 <section id="emptystart" hidden aria-label="Start"><p>No presentation is open. Press <strong>New</strong> to start one, or <strong>Open</strong> to open a file.</p><div class="es-btns"><button type="button" class="primary" id="es-new">Create a presentation</button><button type="button" id="es-open">Open a file</button></div><p class="es-note">Tabbed Slides opens Tabbed Slides (.json) and PowerPoint (.pptx) files. Everything stays in this browser.</p></section>
 
 <main>
-  <aside class="left" aria-label="Slides">
-    <h2>Slides</h2>
-    <ul id="slidelist" class="slide-list"></ul>
+  <aside class="left" aria-label="Slides and outline">
+    <div class="lptabs" role="tablist" aria-label="Left pane"><button type="button" id="lpOutline" role="tab" aria-selected="false">Outline</button><button type="button" id="lpSlides" role="tab" aria-selected="true">Slides</button><button type="button" id="lpFolders" role="tab" aria-selected="false">Folders</button></div>
+    <ul id="slidelist" class="slide-list" aria-label="Slides"></ul>
+    <ol id="outline" aria-label="Outline" hidden></ol>
+    <section id="folderlist" hidden aria-label="Folder files"><div class="fl-row"><strong class="fl-name" id="flname">Folder</strong><button type="button" id="flchoose">Choose folder</button></div><p class="fl-note" id="flnote"></p><div class="fl-row"><button type="button" id="flallow" hidden>Allow access</button><label for="flsort" style="margin-left:auto">Sort</label><select id="flsort"><option value="name">Name, A–Z</option><option value="newest">Newest first</option><option value="oldest">Oldest first</option></select></div><ul id="fllist" aria-label="Presentations in this folder"></ul></section>
   </aside>
 
   <section class="editor" aria-label="Slide editor">
     <p class="help" id="stagehelp">Click the title or a point on the slide and type. Enter adds a point.</p>
+    <div class="sorter" id="sorter" hidden aria-label="Slide sorter"></div>
     <div class="stage" id="stage"></div>
-    <div>
-      <label for="snotes">Speaker notes (shown in Present, and kept in PowerPoint)</label>
-      <textarea id="snotes" style="min-height:70px" placeholder="Notes for the presenter"></textarea>
+    <div id="notesbox">
+      <label for="snotes">Notes (shown in Slide Show, and kept in PowerPoint)</label>
+      <textarea id="snotes" placeholder="Notes for the presenter"></textarea>
     </div>
   </section>
 
-  <aside class="right" aria-label="Deck">
-    <h2>Deck</h2>
-    <label for="dtitle">Deck title (tab name)</label>
-    <input type="text" id="dtitle" maxlength="120" placeholder="Deck title">
-    <h2 style="margin-top:18px">Possible misspellings</h2><ul id="spelllist" class="spell-list" aria-label="Possible misspellings"></ul><div id="chartbox" style="margin-top:14px">
-      <label for="chartdata">Chart data: one row per line, label, value</label>
-      <textarea id="chartdata" placeholder="2023, 120&#10;2024, 145&#10;2025, 160" style="min-height:80px"></textarea>
-    </div>
+  <aside class="right" id="taskpane" aria-label="Task pane">
+    <div class="tp-head"><span id="tpTitle">Slide Layout</span><button type="button" id="tpClose" aria-label="Close task pane" title="Close">×</button></div>
+    <select id="tpSel" class="tp-sel" aria-label="Task pane">
+      <option value="layout">Slide Layout</option>
+      <option value="ideas">Design Ideas</option>
+      <option value="design">Slide Design</option>
+      <option value="chart">Chart Data</option>
+      <option value="comments">Comments</option><option value="spell">Spelling</option>
+    </select>
+    <section class="tp-body" data-pane="layout"><p class="help">Choose how the title, points and picture sit on the slide.</p><div id="galLayout" class="gal"></div></section>
+    <section class="tp-body" data-pane="ideas" hidden><p class="help" id="ideaHelp"></p><div id="galIdeas" class="gal"></div></section>
+    <section class="tp-body" data-pane="design" hidden>
+      <label for="dtitle">Deck title (tab name)</label>
+      <input type="text" id="dtitle" maxlength="120" placeholder="Deck title">
+      <h3>Themes</h3>
+      <div id="themeTiles" class="tiles"></div>
+    </section>
+    <section class="tp-body" data-pane="chart" hidden>
+      <p class="help">Choose a chart in Insert, then type its rows here: one row per line, label, value.</p>
+      <div id="chartbox">
+        <label for="chartdata">Chart data: one row per line, label, value</label>
+        <textarea id="chartdata" placeholder="2023, 120&#10;2024, 145&#10;2025, 160" style="min-height:80px"></textarea>
+      </div>
+    </section>
+    <section class="tp-body" data-pane="comments" hidden><p class="help">Comments on this slide. They are kept in the Tabbed Slides file and in Drive; PowerPoint files do not carry them.</p><label for="cmtext">New comment</label><textarea id="cmtext" placeholder="Write a comment about this slide"></textarea><div style="display:flex;justify-content:flex-end;margin:6px 0"><button type="button" id="cmadd" class="primary">Add comment</button></div><ul id="cmlist" class="cm-list" aria-label="Comments on this slide"></ul></section>
+    <section class="tp-body" data-pane="spell" hidden>
+      <h3>Possible misspellings</h3>
+      <ul id="spelllist" class="spell-list" aria-label="Possible misspellings"></ul>
+    </section>
   </aside>
 </main>
 
 <footer class="bottombar">
+  <span class="sbviews" id="sbviews"></span>
   <span id="dinfo"></span>
+  <span id="themelabel"></span>
   <span class="status" id="autosave" role="status" aria-live="polite">Saved in this browser</span>
-  <span class="ver">Tabbed Slides 2.0.2</span>
+  <span class="status" id="drivestate" role="status" aria-live="polite"></span><span class="ver">Tabbed Slides 2026.11.9</span>
 </footer>
 
+<dialog id="aboutdialog" class="about-dialog" aria-labelledby="aboutTitle"><h2 id="aboutTitle">About Tabbed Slides</h2><div id="aboutbody"></div><form method="dialog"><button type="submit" class="primary" value="close">Close</button></form></dialog>
+<dialog id="ytdialog" class="about-dialog" aria-labelledby="ytTitle"><form id="ytform" method="dialog"><h2 id="ytTitle">Add a YouTube video</h2><p class="help">The slide plays the video in an embedded player: in the browser, in Present, and in the HTML export.</p><label for="ytlink">YouTube link</label><input id="ytlink" type="text" inputmode="url" autocomplete="off" placeholder="https://www.youtube.com/watch?v=…" style="width:100%;min-height:40px;margin-top:6px;padding:6px 10px;border:1px solid #e3c3ad;border-radius:8px;background:#fff"><p id="ytmsg" role="alert" style="color:#9a3412;min-height:1.3em;margin:8px 0 0"></p><div style="text-align:right;margin-top:10px"><button type="button" id="ytcancel">Cancel</button> <button type="button" id="ytok" class="primary">Add video</button></div></form></dialog>
+<dialog id="finddlg" class="about-dialog" aria-labelledby="findTitle">
+  <form id="findform">
+    <h2 id="findTitle">Find and Replace</h2>
+    <label for="findtxt">Find what</label>
+    <input id="findtxt" type="text" autocomplete="off">
+    <label for="repltxt">Replace with</label>
+    <input id="repltxt" type="text" autocomplete="off">
+    <p id="findmsg" class="help" role="status" aria-live="polite"></p>
+    <div class="dlg-btns">
+      <button type="submit" id="findnext" class="primary">Find Next</button>
+      <button type="button" id="replone">Replace</button>
+      <button type="button" id="replall">Replace All</button>
+      <button type="button" id="findclose">Close</button>
+    </div>
+  </form>
+</dialog>
+<dialog id="keysdialog" class="about-dialog" aria-labelledby="keysTitle">
+  <h2 id="keysTitle">Keyboard Shortcuts</h2>
+  <table class="keys">
+    <tr><td>Ctrl+O</td><td>Open a file</td></tr>
+    <tr><td>Ctrl+S</td><td>Save the file</td></tr>
+    <tr><td>Ctrl+F</td><td>Find and Replace</td></tr>
+    <tr><td>In Slide Show: → or Space</td><td>Next point, then next slide</td></tr>
+    <tr><td>In Slide Show: ← </td><td>Previous point or slide</td></tr>
+    <tr><td>In Slide Show: N / F</td><td>Show or hide notes / full slide</td></tr>
+    <tr><td>In Slide Show: Esc</td><td>Close</td></tr>
+  </table>
+  <form method="dialog"><button type="submit" class="primary" value="close">Close</button></form>
+</dialog>
 <div id="present" role="dialog" aria-modal="true" aria-label="Presentation">
   <button type="button" class="pclose" id="pclose">Close</button>
+  <button type="button" class="pfull" id="pfull" aria-pressed="false" title="Full slide: hide the notes (F)" aria-label="Full slide: hide the notes"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/><rect x="8.5" y="8.5" width="7" height="7" rx="1"/></svg></button>
   <button type="button" class="pnav prev" id="pprev" aria-label="Previous">‹</button>
   <div class="pwrap">
     <div id="pslide" style="width:100%;height:100%"></div>
@@ -532,11 +799,368 @@ body.no-deck main{display:none}
 <div id="printarea" aria-hidden="true"></div>
 
 
+<script src="./tabbed-link.js"></script>
+<script src="./drive-save.js"></script>
 <script src="./vendor/pptxgen.bundle.js"></script>
 <script>
 (function () {
   'use strict';
   var KEY = 'tabbed-slides-v1';
+  /* ---- 2026.1.9: Office 2003 shell and photo arrangements (shared by the screen, HTML export and PowerPoint) ---- */
+  var ARR_KEYS = ['standard', 'photoLeft', 'photoFull', 'photoTop', 'photoCenter'];
+  var ARR_NAMES = { standard: 'Title and photo right', photoLeft: 'Photo left', photoFull: 'Full-bleed photo', photoTop: 'Photo on top', photoCenter: 'Centred photo' };
+  /* Positions are fractions of the slide: [x, y, width, height] */
+  var ARR = {
+    photoLeft: { pic: [0, 0, 0.46, 1], title: [0.52, 0.1, 0.43, 0.18], body: [0.52, 0.3, 0.43, 0.6] },
+    photoFull: { pic: [0, 0, 1, 1], title: [0.06, 0.62, 0.88, 0.16], body: [0.06, 0.78, 0.88, 0.2], band: [0, 0.56, 1, 0.44], light: true },
+    photoTop: { pic: [0, 0, 1, 0.5], title: [0.06, 0.53, 0.88, 0.13], body: [0.06, 0.68, 0.88, 0.27] },
+    photoCenter: { pic: [0.2, 0.19, 0.6, 0.5], title: [0.06, 0.03, 0.88, 0.14], body: [0.06, 0.73, 0.88, 0.24], center: true }
+  };
+  var ARR_CSS = '.vid{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:4px;overflow:hidden;flex:none}' +
+    '.vid iframe,.vid video{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}' +
+    '.vid[data-vkey],.vid[data-ytid]{display:flex;align-items:center;justify-content:center;color:#fde3cf;font-size:13px;padding:8px;text-align:center}' +
+    '.sl.arr{padding:0;display:block}' +
+    '.sl.arr .arrbody{overflow:hidden}' +
+    '.sl.arr h2{white-space:normal;line-height:1.1;overflow:hidden;margin:0}' +
+    '.sl.arr .arrpic{display:flex;flex-direction:column;gap:2%;min-height:0;overflow:hidden}' +
+    '.sl.arr .arrpic img{flex:1 1 0;min-height:0;width:100%;object-fit:cover;display:block}' +
+    '.sl.arr .arrpic .vid{aspect-ratio:auto;flex:1 1 0;min-height:0;height:auto}' +
+    '.sl.arr .arrpic svg{flex:1 1 0;min-height:0;width:100%;height:auto}';
+  var SVG = {
+    emailall: '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>',
+    newf: '<svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/></svg>',
+    open: '<svg viewBox="0 0 24 24"><path d="M3 7h6l2 2h10v9H3z"/></svg>',
+    save: '<svg viewBox="0 0 24 24"><path d="M5 3h11l3 3v13H5z"/><path d="M8 3v5h7V3M8 21v-7h8v7"/></svg>',
+    opendrive: '<svg viewBox="0 0 24 24"><path d="M7 18h10.5a4 4 0 0 0 .6-7.96A6 6 0 0 0 6.6 9.2 4.8 4.8 0 0 0 7 18z"/><path d="M12 10.5v5m0 0-2.2-2.2M12 15.5l2.2-2.2"/></svg>',
+    savedrive: '<svg viewBox="0 0 24 24"><path d="M7 18h10.5a4 4 0 0 0 .6-7.96A6 6 0 0 0 6.6 9.2 4.8 4.8 0 0 0 7 18z"/><path d="M12 15.5V10.5m0 0-2.2 2.2M12 10.5l2.2 2.2"/></svg>',
+    findreplace: '<svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg>',
+    boldtext: '<svg viewBox="0 0 24 24"><path d="M6 4h8a4 4 0 0 1 0 8H6zM6 12h9a4 4 0 0 1 0 8H6z"/></svg>',
+    italictext: '<svg viewBox="0 0 24 24"><path d="M19 4h-9M14 20H5M15 4L9 20"/></svg>',
+    layout: '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 10h18M12 10v10"/></svg>',
+    design: '<svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.5 0 2-1 1.5-2.2-.5-1.2.3-2.3 1.5-2.3H18a3 3 0 0 0 3-3A9 9 0 0 0 12 3z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="10" cy="7.5" r="1.2"/><circle cx="15" cy="7.5" r="1.2"/></svg>',
+    ideas: '<svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.1 1 1.9h5c0-.8.4-1.4 1-1.9A6 6 0 0 0 12 3z"/></svg>',
+    notes: '<svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="13" rx="1"/><path d="M8 20h8M8 7h8M8 10h8M8 13h5"/></svg>',
+    normal: '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="1"/><path d="M8 21h8M12 17v4"/></svg>',
+    sorter: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="6"/><rect x="13" y="3" width="8" height="6"/><rect x="3" y="13" width="8" height="6"/><rect x="13" y="13" width="8" height="6"/></svg>',
+    show: '<svg viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></svg>',
+    spell: '<svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h9M4 18h6"/><path d="M14 17l2 2 4-4"/></svg>',
+    help: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7M12 17h.01"/></svg>',
+    fullscreen: '<svg viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg>'
+  };
+  var view = 'normal', paneNow = 'layout', paneOpen = true, notesShown = true, lpNow = 'slides', zoomNow = 100, ratioCache = {};
+  var ZOOMS = [50, 75, 100, 125, 150, 200];
+  var toolButtons = [];
+  var PIC_MAX = 4;
+  /* Photos are kept in IndexedDB; the saved state holds a short reference (pic:…) in their place */
+  var picsReady = false, picsInline = false, picIds = new Map(), picStored = new Set();
+  function isPicRef(u) { return typeof u === 'string' && (u.indexOf('data:image/') === 0 || u.indexOf('pic:') === 0); }
+  /* Thumbnails and galleries draw a placeholder instead of the picture data: far less work on every edit */
+  var LIGHT_PICS = false;
+  function picTag(u) { return LIGHT_PICS ? '<i class="pic-ph"></i>' : '<img src="' + u + '" alt="">'; }
+  function slideThumb(s, d) {
+    var was = LIGHT_PICS; LIGHT_PICS = true;
+    try { return slideHTML(s, d, null, false); } finally { LIGHT_PICS = was; }
+  }
+  /* The pictures of a slide, as data URLs. Files from earlier versions keep their one picture in image. */
+  function picsOf(s) {
+    var list = s && Array.isArray(s.images) && s.images.length ? s.images : (s && s.image ? [s.image] : []);
+    return list.filter(function (u) { return typeof u === 'string' && u.indexOf('data:image/') === 0; });
+  }
+  function setPics(s, list) {
+    list = list.filter(function (u) { return typeof u === 'string' && u.indexOf('data:image/') === 0; });
+    if (list.length) { s.images = list; delete s.image; } else { delete s.images; delete s.image; }
+  }
+  var PANES = { comments: 'Comments', layout: 'Slide Layout', design: 'Slide Design', ideas: 'Design Ideas', chart: 'Chart Data', spell: 'Spelling' };
+  var VIEWS = [['normal', 'Normal'], ['sorter', 'Slide Sorter'], ['show', 'Slide Show']];
+  /* ===== 2026.1.10: drawn shapes (rectangle, ellipse, line, arrow). Positions are percentages of the slide: x, y, w, h. ===== */
+  var SHAPE_KINDS = ['rect', 'ellipse', 'line', 'arrow'];
+  var SHAPE_CSS = '.sl:has(>.shapes){position:relative}' +
+    '.shapes{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none}' +
+    '.shapes [data-sid]{pointer-events:visiblePainted}' +
+    '.shapes .hit{pointer-events:stroke}';
+  var EDIT_CSS = '#hlayer{position:absolute;inset:0;pointer-events:none;z-index:2}' +
+    '#hlayer [hidden]{display:none!important}' +
+    '#hbox{position:absolute;border:1px dashed #316ac5;pointer-events:none}' +
+    '.sh-h{position:absolute;width:8px;height:8px;margin:-4px 0 0 -4px;background:#fff;border:1px solid #316ac5;box-sizing:border-box;pointer-events:auto}' +
+    '.sh-h[data-h=nw],.sh-h[data-h=se]{cursor:nwse-resize}.sh-h[data-h=ne],.sh-h[data-h=sw]{cursor:nesw-resize}.sh-h[data-h=p1],.sh-h[data-h=p2]{cursor:crosshair}' +
+    '.shapes [data-sid]{cursor:move}';
+  function validShape(sh) {
+    return !!sh && typeof sh.id === 'string' && SHAPE_KINDS.indexOf(sh.kind) >= 0 &&
+      isFinite(sh.x) && isFinite(sh.y) && isFinite(sh.w) && isFinite(sh.h);
+  }
+  function shapesOf(s) { return s && Array.isArray(s.shapes) ? s.shapes.filter(validShape) : []; }
+  /* Geometry attributes for one shape, by SVG element name */
+  function shapeAttrs(tag, sh) {
+    var x = sh.x, y = sh.y, w = sh.w, h = sh.h;
+    if (tag === 'rect') return { x: Math.min(x, x + w), y: Math.min(y, y + h), width: Math.abs(w), height: Math.abs(h) };
+    if (tag === 'ellipse') return { cx: x + w / 2, cy: y + h / 2, rx: Math.abs(w) / 2, ry: Math.abs(h) / 2 };
+    return { x1: x, y1: y, x2: x + w, y2: y + h };
+  }
+  var shapeSeq = 0;
+  function shapeMarkup(sh, seq) {
+    var stroke = sh.stroke || '#1e3a5f', sw = sh.sw || 1.5;
+    var paint = ' stroke="' + stroke + '" stroke-width="' + sw + '" vector-effect="non-scaling-stroke" stroke-linecap="round"';
+    var id = ' data-sid="' + sh.id + '"';
+    function attrs(tag) { var a = shapeAttrs(tag, sh), out = ''; Object.keys(a).forEach(function (k) { out += ' ' + k + '="' + a[k] + '"'; }); return out; }
+    if (sh.kind === 'rect' || sh.kind === 'ellipse') {
+      var fill = sh.fill ? sh.fill : 'transparent';
+      return '<' + sh.kind + id + attrs(sh.kind) + ' fill="' + fill + '"' + paint + '/>';
+    }
+    var marker = sh.kind === 'arrow' ? ' marker-end="url(#ah' + seq + '-' + stroke.slice(1) + ')"' : '';
+    return '<line' + id + attrs('line') + paint + marker + '/>' +
+      '<line' + id + attrs('line') + ' stroke="transparent" stroke-width="12" vector-effect="non-scaling-stroke" class="hit"/>';
+  }
+  /* The drawing layer of a slide: one SVG over the slide, in percentages of its size */
+  function shapesHTML(s) {
+    var list = shapesOf(s);
+    if (!list.length) return '';
+    var colours = {};
+    list.forEach(function (sh) { if (sh.kind === 'arrow') colours[sh.stroke || '#1e3a5f'] = true; });
+    var seq = ++shapeSeq;
+    var defs = Object.keys(colours).map(function (c) {
+      return '<marker id="ah' + seq + '-' + c.slice(1) + '" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="1.8" markerHeight="1.8" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="' + c + '"/></marker>';
+    }).join('');
+    return '<svg class="shapes" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><defs>' + defs + '</defs>' + list.map(function (sh) { return shapeMarkup(sh, seq); }).join('') + '</svg>';
+  }
+  /* PowerPoint: a native shape for each drawn shape. Lines flip so that the arrow lands at the end point. */
+  function shapesPptx(pptx, sl, s, PW, PH) {
+    shapesOf(s).forEach(function (sh) {
+      var stroke = (sh.stroke || '#1e3a5f').slice(1).toUpperCase(), line = { color: stroke, width: (sh.sw || 1.5) * 0.75 };
+      var x = sh.x / 100 * PW, y = sh.y / 100 * PH, w = sh.w / 100 * PW, h = sh.h / 100 * PH;
+      if (sh.kind === 'rect' || sh.kind === 'ellipse') {
+        var opts = { x: Math.min(x, x + w), y: Math.min(y, y + h), w: Math.abs(w), h: Math.abs(h), line: line };
+        opts.fill = sh.fill ? { color: sh.fill.slice(1).toUpperCase() } : { type: 'none' };
+        sl.addShape(sh.kind === 'rect' ? pptx.ShapeType.rect : pptx.ShapeType.ellipse, opts);
+      } else {
+        if (sh.kind === 'arrow') line.endArrowType = 'triangle';
+        sl.addShape(pptx.ShapeType.line, { x: Math.min(x, x + w), y: Math.min(y, y + h), w: Math.abs(w), h: Math.abs(h), line: line, flipH: x + w < x, flipV: y + h < y });
+      }
+    });
+  }
+
+  /* ---------- Editing on the slide: select, move, resize, delete ---------- */
+  var selShape = null, shDrag = null, hLayer = null;
+  var SHAPE_DEFAULT = { rect: { fill: '#dbe7f5', stroke: '#1e3a5f', sw: 1.5 }, ellipse: { fill: '#dbe7f5', stroke: '#1e3a5f', sw: 1.5 }, line: { stroke: '#1e3a5f', sw: 2 }, arrow: { stroke: '#1e3a5f', sw: 2 } };
+  function selectedShape() { return shapesOf(slide()).filter(function (sh) { return sh.id === selShape; })[0] || null; }
+  function mountHandles() {
+    if (!hLayer || !hLayer.isConnected) {
+      hLayer = document.createElement('div'); hLayer.id = 'hlayer';
+      hLayer.innerHTML = '<div id="hbox"></div>' + ['nw', 'ne', 'sw', 'se', 'p1', 'p2'].map(function (k) { return '<div class="sh-h" data-h="' + k + '"></div>'; }).join('');
+    }
+    var host = $('stage').querySelector('.sl'); if (!host) return;
+    host.appendChild(hLayer);
+    updateSelection();
+  }
+  /* Moves the selection frame and handles; only style changes, so the slide is not redrawn */
+  function updateSelection() {
+    if (!hLayer) return;
+    var sh = selectedShape();
+    if (selShape && !sh) selShape = null;
+    hLayer.hidden = !sh;
+    if (!sh) return;
+    var line = sh.kind === 'line' || sh.kind === 'arrow';
+    var L = Math.min(sh.x, sh.x + sh.w), T = Math.min(sh.y, sh.y + sh.h), R = Math.max(sh.x, sh.x + sh.w), B = Math.max(sh.y, sh.y + sh.h);
+    var box = hLayer.querySelector('#hbox');
+    box.style.left = L + '%'; box.style.top = T + '%'; box.style.width = (R - L) + '%'; box.style.height = (B - T) + '%';
+    box.hidden = line;
+    var pos = { nw: [L, T], ne: [R, T], sw: [L, B], se: [R, B], p1: [sh.x, sh.y], p2: [sh.x + sh.w, sh.y + sh.h] };
+    hLayer.querySelectorAll('.sh-h').forEach(function (h) {
+      var k = h.getAttribute('data-h'), isEnd = k === 'p1' || k === 'p2';
+      h.hidden = line ? !isEnd : isEnd;
+      if (!h.hidden) { h.style.left = pos[k][0] + '%'; h.style.top = pos[k][1] + '%'; }
+    });
+  }
+  function selectShape(id) { selShape = id || null; updateSelection(); }
+  function stagePoint(e) {
+    var svg = $('stage').querySelector('svg.shapes');
+    if (!svg) return null;
+    var r = svg.getBoundingClientRect();
+    return {
+      svg: svg,
+      x: Math.max(0, Math.min(100, (e.clientX - r.left) / r.width * 100)),
+      y: Math.max(0, Math.min(100, (e.clientY - r.top) / r.height * 100))
+    };
+  }
+  /* Writes the shape's geometry into its drawn elements (two for a line: the line and its hit area) */
+  function paintShape(sh) {
+    var svg = $('stage').querySelector('svg.shapes');
+    if (!svg) return;
+    svg.querySelectorAll('[data-sid="' + sh.id + '"]').forEach(function (el) {
+      var a = shapeAttrs(el.tagName, sh);
+      Object.keys(a).forEach(function (k) { el.setAttribute(k, a[k]); });
+    });
+  }
+  function beginDrag(mode, sh, handle, e) {
+    var p = stagePoint(e); if (!p) return;
+    shDrag = { mode: mode, id: sh.id, handle: handle, orig: { x: sh.x, y: sh.y, w: sh.w, h: sh.h }, start: p };
+    document.addEventListener('pointermove', onDragMove);
+    document.addEventListener('pointerup', onDragEnd);
+    document.addEventListener('pointercancel', onDragEnd);
+  }
+  function onDragMove(e) {
+    if (!shDrag) return;
+    var p = stagePoint(e), sh = selectedShape();
+    if (!p || !sh) return;
+    var o = shDrag.orig, dx = p.x - shDrag.start.x, dy = p.y - shDrag.start.y;
+    if (shDrag.mode === 'move') {
+      var minX = Math.min(o.x, o.x + o.w), maxX = Math.max(o.x, o.x + o.w), minY = Math.min(o.y, o.y + o.h), maxY = Math.max(o.y, o.y + o.h);
+      dx = Math.max(-minX, Math.min(100 - maxX, dx)); dy = Math.max(-minY, Math.min(100 - maxY, dy));
+      sh.x = o.x + dx; sh.y = o.y + dy; sh.w = o.w; sh.h = o.h;
+    } else if (sh.kind === 'line' || sh.kind === 'arrow') {
+      if (shDrag.handle === 'p1') { sh.x = p.x; sh.y = p.y; sh.w = (o.x + o.w) - p.x; sh.h = (o.y + o.h) - p.y; }
+      else { sh.w = p.x - o.x; sh.h = p.y - o.y; }
+    } else {
+      var L = Math.min(o.x, o.x + o.w), R = Math.max(o.x, o.x + o.w), T = Math.min(o.y, o.y + o.h), B = Math.max(o.y, o.y + o.h);
+      var hd = shDrag.handle;
+      if (hd === 'nw' || hd === 'sw') L = Math.min(p.x, R - 0.5); else R = Math.max(p.x, L + 0.5);
+      if (hd === 'nw' || hd === 'ne') T = Math.min(p.y, B - 0.5); else B = Math.max(p.y, T + 0.5);
+      sh.x = L; sh.y = T; sh.w = R - L; sh.h = B - T;
+    }
+    paintShape(sh);
+    updateSelection();
+  }
+  function onDragEnd() {
+    document.removeEventListener('pointermove', onDragMove);
+    document.removeEventListener('pointerup', onDragEnd);
+    document.removeEventListener('pointercancel', onDragEnd);
+    if (shDrag) { shDrag = null; queueSave(); scheduleThumbs(); }
+  }
+  $('stage').addEventListener('pointerdown', function (e) {
+    if (e.button !== 0 || slide().layout) return;
+    var h = e.target.closest ? e.target.closest('#hlayer .sh-h') : null;
+    var g = e.target.closest ? e.target.closest('svg.shapes [data-sid]') : null;
+    if (h && selectedShape()) { if (document.activeElement && document.activeElement.isContentEditable) document.activeElement.blur(); e.preventDefault(); beginDrag('resize', selectedShape(), h.getAttribute('data-h'), e); return; }
+    if (g) {
+      var sh = shapesOf(slide()).filter(function (x) { return x.id === g.getAttribute('data-sid'); })[0];
+      if (!sh) return;
+      if (document.activeElement && document.activeElement.isContentEditable) document.activeElement.blur();
+      e.preventDefault(); selectShape(sh.id); beginDrag('move', sh, null, e); return;
+    }
+    if (selShape) selectShape(null);
+  });
+  document.addEventListener('keydown', function (e) {
+    if (!selShape || !hasDeck() || $('present').classList.contains('on')) return;
+    var ae = document.activeElement;
+    if (ae && (ae.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName))) return;
+    if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); deleteShape(); }
+    else if (e.key === 'Escape') selectShape(null);
+  });
+  function changedShapes() { renderStage(); queueSave(); scheduleThumbs(); }
+  function addShape(kind) {
+    var s = slide();
+    if (!s || s.layout || SHAPE_KINDS.indexOf(kind) < 0) { setStatus('Shapes cannot be added to a slide from PowerPoint with its own layout.', false); return; }
+    var line = kind === 'line' || kind === 'arrow';
+    var k = (shapesOf(s).length % 5) * 4;
+    var sh = Object.assign({ id: uid(), kind: kind, x: (line ? 30 : 35) + k, y: (line ? 50 : 35) + k, w: line ? 40 : 30, h: line ? 0 : 22 }, SHAPE_DEFAULT[kind]);
+    s.shapes = shapesOf(s).concat([sh]);
+    selShape = sh.id;
+    changedShapes();
+  }
+  function deleteShape() {
+    var s = slide();
+    if (!selShape) return;
+    s.shapes = shapesOf(s).filter(function (sh) { return sh.id !== selShape; });
+    selShape = null;
+    changedShapes();
+  }
+  function shapeFill(colour) {
+    var sh = selectedShape();
+    if (!sh) { setStatus('Select a shape on the slide first.', false); return; }
+    if (sh.kind === 'rect' || sh.kind === 'ellipse') { if (colour) sh.fill = colour; else delete sh.fill; }
+    else if (colour) sh.stroke = colour;
+    changedShapes();
+  }
+  function addShapeButtons(box) {
+    function btn(inner, title, act) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.title = title; b.setAttribute('aria-label', title);
+      b.innerHTML = inner;
+      b.addEventListener('mousedown', function (e) { e.preventDefault(); });
+      b.onclick = act;
+      box.append(b);
+      toolButtons.push({ el: b, o: { need: true } });
+    }
+    var sep = document.createElement('span'); sep.className = 'sep'; box.append(sep);
+    btn('<svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12"/></svg>', 'Rectangle', function () { addShape('rect'); });
+    btn('<svg viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="8" ry="6"/></svg>', 'Ellipse', function () { addShape('ellipse'); });
+    btn('<svg viewBox="0 0 24 24"><path d="M5 19L19 5"/></svg>', 'Line', function () { addShape('line'); });
+    btn('<svg viewBox="0 0 24 24"><path d="M5 19L17 7"/><path d="M12 7h5v5"/></svg>', 'Arrow', function () { addShape('arrow'); });
+    var sep2 = document.createElement('span'); sep2.className = 'sep'; box.append(sep2);
+    FMT_COLOURS.forEach(function (c) {
+      btn('<i class="fmt-sw" style="background:' + c + '"></i>', 'Shape colour ' + c, function () { shapeFill(c); });
+    });
+    btn('<span class="nofill">No fill</span>', 'No fill for the selected shape', function () { shapeFill(null); });
+    btn('<span>Delete</span>', 'Delete the selected shape', function () { deleteShape(); });
+  }
+
+  /* ---- 2026.1.9: photo arrangements (screen, HTML export, PowerPoint) ---- */
+  /* An arrangement applies to any slide that is not from PowerPoint's own layout. Picture, video and chart share the picture area, one under another. */
+  function arrOf(s) {
+    if (!s || !s.arr || !ARR[s.arr] || s.layout) return null;
+    return s.arr;
+  }
+  function arrHTML(s, d, step, editable, key) {
+    var A = ARR[key], t = theme(d), light = !!A.light;
+    var style = '--header:' + t.header + ';--accent:' + t.accent + ';--paper:' + t.paper + ';--ink:' + t.ink;
+    function box(r, extra) {
+      return 'position:absolute;left:' + (r[0] * 100) + '%;top:' + (r[1] * 100) + '%;width:' + (r[2] * 100) + '%;height:' + (r[3] * 100) + '%;' + (extra || '');
+    }
+    var txt = light ? 'color:#fff;' : '';
+    var vis = [];
+    picsOf(s).forEach(function (u) { vis.push(picTag(u)); });
+    if (s.video) vis.push(videoHTML(s));
+    if (chartRows(s.chart).length) vis.push(svgChart(s.chart, t));
+    var pic = vis.length ? '<div class="arrpic" style="' + box(A.pic) + '">' + vis.join('') + '</div>' : '';
+    var band = A.band ? '<div style="' + box(A.band, 'background:var(--header)') + '"></div>' : '';
+    var head = editable
+      ? '<h2 contenteditable="true" spellcheck="false" data-field="title" style="' + box(A.title, txt) + '">' + richHTML(s.title || '') + '</h2>'
+      : '<h2 style="' + box(A.title, txt) + '">' + richHTML(s.title || 'Untitled slide') + '</h2>';
+    var items = s.points.map(function (p, i) {
+      var hidden = step !== null && step !== undefined && i >= step;
+      return '<li' + (hidden ? ' class="hidden-step"' : '') + (editable ? ' contenteditable="true" spellcheck="false"' : '') + '>' + richHTML(p) + '</li>';
+    }).join('');
+    var list = s.points.length ? '<ul>' + items + '</ul>' : (editable ? '<ul><li contenteditable="true" spellcheck="false"></li></ul>' : '<ul><li class="ghost" style="list-style:none">Points appear here</li></ul>');
+    var body = '<div class="arrbody" style="' + box(A.body, txt) + '">' + list + '</div>';
+    return '<div class="sl arr" style="' + style + ';position:relative;border-top:0">' + pic + band + head + body + shapesHTML(s) + '</div>';
+  }
+  function arrPptx(pptx, sl, s, d, PW, PH) {
+    var key = arrOf(s), A = ARR[key], t = theme(d), light = !!A.light;
+    sl.background = { color: t.pptPaper };
+    function r(a) { return { x: a[0] * PW, y: a[1] * PH, w: a[2] * PW, h: a[3] * PH }; }
+    if (A.band) { var bb = r(A.band); sl.addShape(pptx.ShapeType.rect, { x: bb.x, y: bb.y, w: bb.w, h: bb.h, fill: { color: t.pptHeader }, line: { color: t.pptHeader }, objectName: 'TabbedSlides band' }); }
+    var rows = chartRows(s.chart), hasChart = rows.length > 0, hasVideo = !!s.video;
+    var kinds = [];
+    picsOf(s).forEach(function (u) { kinds.push({ k: 'image', u: u }); });
+    if (hasVideo) kinds.push({ k: 'video' });
+    if (hasChart) kinds.push({ k: 'chart' });
+    if (kinds.length) {
+      var pb = r(A.pic), gap = 0.02 * PH, h = (pb.h - gap * (kinds.length - 1)) / kinds.length, y = pb.y;
+      kinds.forEach(function (kind) {
+        var box = { x: pb.x, y: y, w: pb.w, h: h };
+        if (kind.k === 'image') sl.addImage({ data: kind.u, x: box.x, y: box.y, w: box.w, h: box.h, sizing: { type: 'cover', w: box.w, h: box.h } });
+        if (kind.k === 'video' && s.video.kind === 'file' && MEDIA[s.video.key] && MEDIA[s.video.key].data) {
+          sl.addMedia({ type: 'video', data: MEDIA[s.video.key].data, x: box.x, y: box.y, w: box.w, h: box.h });
+        } else if (kind.k === 'video' && s.video.kind === 'youtube') {
+          var yurl = 'https://www.youtube.com/watch?v=' + s.video.id;
+          sl.addShape(pptx.ShapeType.rect, { x: box.x, y: box.y, w: box.w, h: box.h, fill: { color: '111111' }, line: { color: '111111' }, objectName: 'YouTube video' });
+          sl.addText('\u25B6  Watch on YouTube', { x: box.x, y: box.y, w: box.w, h: box.h, align: 'center', valign: 'middle', fontFace: 'Arial', fontSize: 16, color: 'FFFFFF', hyperlink: { url: yurl, tooltip: 'Watch on YouTube' } });
+        }
+        if (kind.k === 'chart') {
+          sl.addChart(s.chart.type === 'line' ? pptx.ChartType.line : pptx.ChartType.bar,
+            [{ name: s.title || 'Values', labels: rows.map(function (q) { return q.label; }), values: rows.map(function (q) { return q.value; }) }],
+            { x: box.x, y: box.y, w: box.w, h: box.h, chartColors: [t.pptAccent], showLegend: false, showValue: true, dataLabelFontSize: 11, catAxisLabelFontSize: 11, valAxisLabelFontSize: 10 });
+        }
+        y += h + gap;
+      });
+    }
+    var tb = r(A.title);
+    sl.addText(pptRuns(s.title || 'Untitled slide', { fontFace: 'Georgia', fontSize: 30, bold: true, color: light ? 'FFFFFF' : t.pptHeader }), { x: tb.x, y: tb.y, w: tb.w, h: tb.h, valign: 'middle' });
+    if (s.points.length) {
+      var bd = r(A.body);
+      sl.addText(pptBullets(s.points, { fontFace: 'Georgia', fontSize: 20, color: light ? 'FFFFFF' : t.pptInk }),
+        { x: bd.x, y: bd.y, w: bd.w, h: bd.h, valign: 'top', paraSpaceAfter: 8 });
+    }
+  }
   var THEMES = {
     slate: { header: '#1e3a5f', accent: '#2c5282', paper: '#fbfdff', ink: '#13233d', pptHeader: '1E3A5F', pptAccent: '2C5282', pptPaper: 'FBFDFF', pptInk: '13233D' },
     orange: { header: '#6e5600', accent: '#8c6d00', paper: '#fffdf3', ink: '#3a3008', pptHeader: '6E5600', pptAccent: '8C6D00', pptPaper: 'FFFDF3', pptInk: '3A3008' },
@@ -545,6 +1169,7 @@ body.no-deck main{display:none}
     sand:  { header: '#5a4a2f', accent: '#b08d57', paper: '#faf6ec', ink: '#3b3024', pptHeader: '5A4A2F', pptAccent: 'B08D57', pptPaper: 'FAF6EC', pptInk: '3B3024' }
   };
   var state = null, presStep = 0, presIndex = 0, notesOn = false, saveTimer = null;
+  var fullSlide = false, notesBefore = true;
 
   function $(id) { return document.getElementById(id); }
   function uid() { return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(36).slice(2)); }
@@ -560,8 +1185,13 @@ body.no-deck main{display:none}
     return s && typeof s.id === 'string' && typeof s.title === 'string' && Array.isArray(s.points) &&
       s.points.every(function (p) { return typeof p === 'string'; }) &&
       (s.notes === undefined || typeof s.notes === 'string') &&
-      (s.image === undefined || s.image === null || (typeof s.image === 'string' && s.image.indexOf('data:image/') === 0)) &&
+      (s.image === undefined || s.image === null || isPicRef(s.image)) &&
+      (s.images === undefined || s.images === null || (Array.isArray(s.images) && s.images.every(isPicRef))) &&
       (s.chart === undefined || s.chart === null || (s.chart && (s.chart.type === 'bar' || s.chart.type === 'line') && Array.isArray(s.chart.data))) &&
+      (s.arr === undefined || s.arr === null || ['photoLeft', 'photoFull', 'photoTop', 'photoCenter'].indexOf(s.arr) >= 0) &&
+      (s.video === undefined || s.video === null || validVideo(s.video)) &&
+      (s.shapes === undefined || s.shapes === null || Array.isArray(s.shapes)) &&
+      (s.anim === undefined || s.anim === null || typeof s.anim === 'boolean') &&
       (s.layout === undefined || s.layout === null || (typeof s.layout === 'object' && Array.isArray(s.layout.items) && isFinite(s.layout.w) && isFinite(s.layout.h)));
   }
   function isDeck(d) { return d && typeof d.id === 'string' && typeof d.title === 'string' && Array.isArray(d.slides) && d.slides.length > 0 && d.slides.every(isSlide); }
@@ -571,13 +1201,81 @@ body.no-deck main{display:none}
     return null;
   }
   function setStatus(text, isError) { var el = $('autosave'); el.textContent = text; el.className = 'status' + (isError ? ' error' : ''); }
-  function writeStore() {
-    try {
-      localStorage.setItem(KEY, JSON.stringify({ version: 1, activeId: state.activeId, decks: state.decks }));
-      setStatus('Saved in this browser · ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' }), false);
-    } catch (e) { setStatus('Could not save in this browser (storage full?). Use Save file.', true); }
+  /* The state as saved: each new photo is listed for IndexedDB, and the saved copy names it by reference */
+  function serialiseState() {
+    var pending = [];
+    function ref(u) {
+      if (typeof u !== 'string' || u.indexOf('data:image/') !== 0) return u;
+      if (picsInline) return u;
+      var id = picIds.get(u);
+      if (!id) { id = 'pic:' + uid(); picIds.set(u, id); }
+      if (!picStored.has(id)) pending.push([id, u]);
+      return id;
+    }
+    var decks = state.decks.map(function (d) {
+      return Object.assign({}, d, { slides: d.slides.map(function (s) {
+        var c = Object.assign({}, s);
+        if (Array.isArray(s.images)) c.images = s.images.map(ref);
+        if (typeof s.image === 'string') c.image = ref(s.image);
+        return c;
+      }) });
+    });
+    return { data: { version: 1, activeId: state.activeId, decks: decks }, pending: pending };
   }
-  function queueSave() { setStatus('Saving…', false); clearTimeout(saveTimer); saveTimer = setTimeout(writeStore, 400); }
+  /* Removes stored photos that no slide shows any more */
+  function picPrune() {
+    var keep = {};
+    state.decks.forEach(function (d) { d.slides.forEach(function (s) {
+      (Array.isArray(s.images) ? s.images : []).concat(typeof s.image === 'string' ? [s.image] : []).forEach(function (u) { var id = picIds.get(u); if (id) keep[id] = true; });
+    }); });
+    picIds.forEach(function (id, u) { if (!keep[id]) { picIds.delete(u); picStored.delete(id); } });
+    return mediaKeys().then(function (keys) {
+      keys.forEach(function (k) { if (typeof k === 'string' && k.indexOf('pic:') === 0 && !keep[k]) mediaDelete(k); });
+    }).catch(function () {});
+  }
+  function writeStore() {
+    if (!picsReady) { setStatus('Loading pictures…', false); return Promise.resolve(); }
+    var out = serialiseState();
+    var puts = picsInline ? [] : out.pending.map(function (p) { return mediaPut(p[0], p[1]).then(function () { picStored.add(p[0]); }); });
+    return Promise.all(puts).then(function () {
+      localStorage.setItem(KEY, JSON.stringify(out.data));
+      setStatus('Saved in this browser · ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' }), false);
+      picPrune();
+    }).catch(function () {
+      /* Without IndexedDB the photos are kept inside the saved state, as in earlier versions */
+      if (!picsInline && out.pending.length) { picsInline = true; return writeStore(); }
+      setStatus('Could not save in this browser (storage full?). Use Save file.', true);
+    });
+  }
+  /* Reads the photos back before the deck is drawn; a missing photo is left out, an unreadable store keeps its references */
+  function hydratePics(st) {
+    var refs = [], seen = {};
+    st.decks.forEach(function (d) { d.slides.forEach(function (s) {
+      (Array.isArray(s.images) ? s.images : []).concat(typeof s.image === 'string' ? [s.image] : []).forEach(function (u) {
+        if (typeof u === 'string' && u.indexOf('pic:') === 0 && !seen[u]) { seen[u] = true; refs.push(u); }
+      });
+    }); });
+    if (!refs.length) { picsReady = true; return Promise.resolve(); }
+    return Promise.all(refs.map(function (id) {
+      return mediaGet(id).then(function (data) { return [id, data]; }, function () { return [id, undefined]; });
+    })).then(function (pairs) {
+      var map = {};
+      pairs.forEach(function (p) {
+        if (typeof p[1] === 'string') { map[p[0]] = p[1]; picIds.set(p[1], p[0]); picStored.add(p[0]); }
+        else if (p[1] === null) map[p[0]] = null;
+      });
+      function resolve(u) {
+        if (typeof u !== 'string' || u.indexOf('pic:') !== 0) return u;
+        if (map[u] === undefined) return u;   /* the store could not be read: keep the reference */
+        return map[u];                        /* null: the photo is missing */
+      }
+      st.decks.forEach(function (d) { d.slides.forEach(function (s) {
+        if (Array.isArray(s.images)) s.images = s.images.map(resolve).filter(isPicRef);
+        if (typeof s.image === 'string') { var v = resolve(s.image); if (isPicRef(v)) s.image = v; else delete s.image; }
+      }); });
+    }).catch(function () {}).then(function () { picsReady = true; });
+  }
+  function queueSave() { setStatus('Saving…', false); clearTimeout(saveTimer); saveTimer = setTimeout(writeStore, 400); if (window.TabbedDrive) TabbedDrive.touch(); }
 
   /* Chart and slide markup, shared by the editor, Present, print and HTML export */
   function chartRows(chart) {
@@ -612,19 +1310,21 @@ body.no-deck main{display:none}
   /* step: null shows every point; a number shows that many (others keep their place but are hidden) */
   function slideHTML(s, d, step, editable) {
     if (s.layout) return flHTML(s, d, editable);
+    if (arrOf(s)) return arrHTML(s, d, step, editable, arrOf(s));
     var t = theme(d), style = '--header:' + t.header + ';--accent:' + t.accent + ';--paper:' + t.paper + ';--ink:' + t.ink;
     var items = s.points.map(function (p, i) {
       var hidden = step !== null && step !== undefined && i >= step;
-      return '<li' + (hidden ? ' class="hidden-step"' : '') + (editable ? ' contenteditable="true" spellcheck="false"' : '') + '>' + esc(p) + '</li>';
+      return '<li' + (hidden ? ' class="hidden-step"' : '') + (editable ? ' contenteditable="true" spellcheck="false"' : '') + '>' + richHTML(p) + '</li>';
     }).join('');
     var list = s.points.length ? '<ul>' + items + '</ul>' : (editable ? '<ul><li contenteditable="true" spellcheck="false"></li></ul>' : '<ul><li class="ghost" style="list-style:none">Points appear here</li></ul>');
     var side = '';
-    if (s.image && s.image.indexOf('data:image/') === 0) side += '<img src="' + s.image + '" alt="">';
+    picsOf(s).forEach(function (u) { side += picTag(u); });
+    side += videoHTML(s);
     var rows = chartRows(s.chart);
     if (rows.length) side += svgChart(s.chart, t);
     var body = side ? '<div class="cols"><div class="text">' + list + '</div><div class="side">' + side + '</div></div>' : '<div class="cols"><div class="text">' + list + '</div></div>';
-    var head = editable ? '<h2 contenteditable="true" spellcheck="false" data-field="title">' + esc(s.title || '') + '</h2>' : '<h2>' + esc(s.title || 'Untitled slide') + '</h2>';
-    return '<div class="sl" style="' + style + '">' + head + body + '</div>';
+    var head = editable ? '<h2 contenteditable="true" spellcheck="false" data-field="title">' + richHTML(s.title || '') + '</h2>' : '<h2>' + richHTML(s.title || 'Untitled slide') + '</h2>';
+    return '<div class="sl" style="' + style + '">' + head + body + shapesHTML(s) + '</div>';
   }
 
   /* Free-layout slides (opened from PowerPoint): items drawn where PowerPoint put them.
@@ -934,17 +1634,20 @@ body.no-deck main{display:none}
     d.slides.forEach(function (s, i) {
       var li = document.createElement('li'), b = document.createElement('button');
       b.type = 'button'; b.className = 'slide-item' + (i === d.current ? ' current' : ''); b.setAttribute('aria-current', i === d.current ? 'true' : 'false');
-      var num = document.createElement('span'); num.className = 'num'; num.textContent = 'Slide ' + (i + 1);
-      var name = document.createElement('span'); name.className = 'name'; name.textContent = s.title || 'Untitled';
-      b.append(num, name);
+      b.setAttribute('aria-label', 'Slide ' + (i + 1) + ': ' + (s.title || 'Untitled'));
+      var num = document.createElement('span'); num.className = 'num'; num.textContent = String(i + 1);
+      var th = document.createElement('div'); th.className = 'thumb'; th.style.setProperty('--ts', '.115');
+      th.innerHTML = '<div class="thumb-in">' + slideThumb(s, d) + '</div>';
+      b.append(num, th);
       b.onclick = function () { d.current = i; render(); queueSave(); };
       li.append(b); list.append(li);
     });
     $('upslide').disabled = d.current === 0;
     $('downslide').disabled = d.current === d.slides.length - 1;
     $('delslide').disabled = d.slides.length === 1;
+    refreshOffice();
   }
-  function renderStage() { var d = deck(), s = slide(); $('stage').classList.toggle('free', !!s.layout); $('stage').innerHTML = slideHTML(s, d, null, true); }
+  function renderStage() { var d = deck(), s = slide(); $('stage').classList.toggle('free', !!s.layout); $('stage').innerHTML = slideHTML(s, d, null, true); hydrateVideos($('stage')); mountHandles(); }
   function renderEditor() {
     var s = slide(), d = deck();
     function put(id, v) { if (document.activeElement !== $(id)) $(id).value = v; }
@@ -954,17 +1657,19 @@ body.no-deck main{display:none}
     if (document.activeElement !== $('chartdata')) $('chartdata').value = s.chart ? chartRows(s.chart).map(function (r) { return r.label + ', ' + r.value; }).join('\n') : '';
     $('chartbox').hidden = !s.chart;
     var free = !!s.layout;
-    $('delpic').disabled = free || !s.image; $('addpic').disabled = free; $('chartkind').disabled = free;
+    $('delpic').disabled = free || !picsOf(s).length; $('addpic').disabled = free; $('chartkind').disabled = free;
+    $('addvideo').disabled = free; $('addyt').disabled = free; $('delvideo').disabled = free || !s.video;
     $('stagehelp').textContent = free ? 'Slide opened from PowerPoint, with its layout. Click any text on the slide to change it; Enter starts a new line.' : 'Click the title or a point on the slide and type. Enter adds a point.';
     $('dinfo').textContent = 'Slide ' + (d.current + 1) + ' of ' + d.slides.length + '  ·  ' + state.decks.length + (state.decks.length === 1 ? ' deck open' : ' decks open');
     $('deckcount').textContent = state.decks.length + (state.decks.length === 1 ? ' deck' : ' decks');
+    if (paneOpen && paneNow === 'comments') renderComments();
   }
   /* v2.0.2: with no deck open, show the start screen instead of an editor */
   function setEmpty(on) {
     document.body.classList.toggle('no-deck', on);
     $('emptystart').hidden = !on;
     [].forEach.call(document.querySelectorAll('nav.ribbon button, nav.ribbon select, nav.ribbon input'), function (el) {
-      if (el.id === 'newdeck' || el.id === 'opendeck' || el.id === 'spellon') return;
+      if (el.id === 'newdeck' || el.id === 'opendeck' || el.id === 'opendrive' || el.id === 'spellon') return;
       if (on) { if (!el.disabled) { el.disabled = true; el.dataset.emptyOff = '1'; } }
       else if (el.dataset.emptyOff) { el.disabled = false; delete el.dataset.emptyOff; }
     });
@@ -996,14 +1701,19 @@ body.no-deck main{display:none}
   }
   function readStage() {
     var s = slide(), h = $('stage').querySelector('h2[contenteditable]');
-    if (h) s.title = h.textContent;
+    if (h) s.title = richFrom(h);
     var lis = [].slice.call($('stage').querySelectorAll('.text li[contenteditable]'));
-    s.points = lis.map(function (li) { return li.textContent.replace(/\s+$/, ''); }).filter(function (t) { return t.trim() !== ''; });
+    s.points = lis.map(function (li) { return richFrom(li); }).filter(function (t) { return plainOf(t).trim() !== ''; });
   }
   function onStageEdit(e) {
     if (slide().layout) { var el = e && e.target && e.target.closest ? e.target.closest('.fp[data-a]') : null; if (el) readFreePara(el); }
     else readStage();
-    renderSlides(); renderTabs(); queueSave();
+    queueSave(); scheduleThumbs();
+  }
+  var thumbTimer = null;
+  function scheduleThumbs() {
+    clearTimeout(thumbTimer);
+    thumbTimer = setTimeout(function () { thumbTimer = null; renderSlides(); renderTabs(); }, 180);
   }
   $('stage').addEventListener('input', onStageEdit);
   $('stage').addEventListener('keydown', function (e) {
@@ -1060,7 +1770,7 @@ body.no-deck main{display:none}
 
   /* Pictures: resized in the browser so the saved file stays small */
   $('addpic').onclick = function () { $('imgin').value = ''; $('imgin').click(); };
-  $('delpic').onclick = function () { slide().image = null; renderEditor(); renderStage(); queueSave(); };
+  $('delpic').onclick = function () { setPics(slide(), []); renderEditor(); renderStage(); queueSave(); };
   $('imgin').onchange = function () {
     var f = $('imgin').files[0]; if (!f) return;
     var reader = new FileReader();
@@ -1073,13 +1783,184 @@ body.no-deck main{display:none}
         var g = c.getContext('2d'); g.fillStyle = '#ffffff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, 0, 0, c.width, c.height);
         var url = c.toDataURL('image/jpeg', 0.85);
         if (url.length > 900000) url = c.toDataURL('image/jpeg', 0.7);
-        slide().image = url; renderEditor(); renderStage(); queueSave();
+        var first = !picsOf(slide()).length;
+        if (!first && picsOf(slide()).length >= PIC_MAX) { setStatus('A slide holds up to ' + PIC_MAX + ' pictures. Remove them first to change the set.', true); return; }
+        setPics(slide(), picsOf(slide()).concat([url])); renderEditor(); renderStage(); queueSave();
+        if (first) afterPictureInserted(slide(), img.width, img.height);
       };
       img.onerror = function () { setStatus('This picture could not be read.', true); };
       img.src = reader.result;
     };
     reader.readAsDataURL(f);
   };
+
+  /* ---- Videos (2026.1.2). An uploaded video is kept in this browser's IndexedDB (a deck's text stays in localStorage).
+     A YouTube slide keeps only the video ID and plays the video in an embedded player. ---- */
+  var MAX_VIDEO = 100 * 1024 * 1024;
+  var MEDIA = {}, mediaInline = false, pendingMedia = {}, mediaDBPromise = null;
+  function mediaDB() {
+    if (!mediaDBPromise) mediaDBPromise = new Promise(function (resolve, reject) {
+      var req;
+      try { req = indexedDB.open('tabbed-slides-media', 1); } catch (e) { reject(e); return; }
+      req.onupgradeneeded = function () { req.result.createObjectStore('files'); };
+      req.onsuccess = function () { resolve(req.result); };
+      req.onerror = function () { reject(req.error || new Error('This browser did not open its video store')); };
+    });
+    return mediaDBPromise;
+  }
+  function mediaTx(mode, action) {
+    return mediaDB().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var tx = db.transaction('files', mode), out;
+        var req = action(tx.objectStore('files'));
+        if (req) req.onsuccess = function () { out = req.result; };
+        tx.oncomplete = function () { resolve(out); };
+        tx.onerror = function () { reject(tx.error || new Error('the video could not be saved')); };
+        tx.onabort = function () { reject(tx.error || new Error('the video could not be saved, the browser may be out of space')); };
+      });
+    });
+  }
+  function mediaPut(key, blob) { return mediaTx('readwrite', function (st) { return st.put(blob, key); }); }
+  function mediaGet(key) { return mediaTx('readonly', function (st) { return st.get(key); }); }
+  function mediaDelete(key) { return mediaTx('readwrite', function (st) { return st.delete(key); }).catch(function () {}); }
+  function mediaKeys() { return mediaTx('readonly', function (st) { return st.getAllKeys(); }); }
+  function forgetMedia(key) { var m = MEDIA[key]; if (m && m.url) URL.revokeObjectURL(m.url); delete MEDIA[key]; }
+  function mediaURL(key) {
+    if (MEDIA[key] && MEDIA[key].url) return Promise.resolve(MEDIA[key].url);
+    return mediaGet(key).then(function (blob) {
+      if (!blob) return null;
+      MEDIA[key] = MEDIA[key] || {};
+      MEDIA[key].url = URL.createObjectURL(blob);
+      return MEDIA[key].url;
+    });
+  }
+  function blobToDataURL(blob) {
+    return new Promise(function (resolve, reject) {
+      var r = new FileReader();
+      r.onload = function () { resolve(r.result); };
+      r.onerror = function () { reject(r.error || new Error('the video could not be read')); };
+      r.readAsDataURL(blob);
+    });
+  }
+  /* Export: the file videos of a deck are read into data URLs for the length of one export, then released */
+  function prepareMedia(d) {
+    var keys = [];
+    d.slides.forEach(function (s) { if (s.video && s.video.kind === 'file') keys.push(s.video.key); });
+    return Promise.all(keys.map(function (key) {
+      return mediaGet(key).then(function (blob) {
+        if (!blob) throw new Error('a video of this deck is missing from this browser. Remove it and add it again.');
+        return blobToDataURL(blob);
+      }).then(function (data) { MEDIA[key] = MEDIA[key] || {}; MEDIA[key].data = data; });
+    }));
+  }
+  function releaseMedia() { Object.keys(MEDIA).forEach(function (k) { delete MEDIA[k].data; }); }
+  function withMedia(d, fn) {
+    return prepareMedia(d).then(fn).then(function (r) { releaseMedia(); return r; }, function (e) { releaseMedia(); throw e; });
+  }
+  /* Removes stored videos that no slide uses any more (a video being added is kept until its slide points to it) */
+  function mediaPrune() {
+    var keep = {};
+    Object.keys(pendingMedia).forEach(function (k) { keep[k] = true; });
+    state.decks.forEach(function (d) { d.slides.forEach(function (s) { if (s.video && s.video.kind === 'file') keep[s.video.key] = true; }); });
+    return mediaKeys().then(function (keys) {
+      keys.forEach(function (k) { if (!keep[k]) { forgetMedia(k); mediaDelete(k); } });
+    }).catch(function () {});
+  }
+  function validVideo(v) {
+    return !!v && ((v.kind === 'youtube' && typeof v.id === 'string' && /^[A-Za-z0-9_-]{11}$/.test(v.id)) ||
+      (v.kind === 'file' && typeof v.key === 'string' && typeof v.name === 'string'));
+  }
+  /* A deck saved as .json carries its video files inside the file; opening it stores them again under new keys */
+  function importVideos(d) {
+    return Promise.all(d.slides.map(function (s) {
+      var v = s.video;
+      if (!v || v.kind !== 'file' || typeof v.data !== 'string') return null;
+      return fetch(v.data).then(function (r) { return r.blob(); }).then(function (blob) {
+        if (blob.size > MAX_VIDEO) throw new Error('a video in this deck is larger than 100 MB');
+        var key = uid();
+        return mediaPut(key, blob).then(function () { v.key = key; delete v.data; });
+      });
+    }));
+  }
+  function youtubeId(text) {
+    var t = String(text || '').trim();
+    var m = t.match(/(?:youtube\.com\/(?:watch\?(?:[^#]*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})(?![A-Za-z0-9_-])/);
+    if (m) return m[1];
+    return /^[A-Za-z0-9_-]{11}$/.test(t) ? t : null;
+  }
+  /* Slide markup: a placeholder that hydrateVideos fills, or a self-contained player when the HTML export is built */
+  function videoHTML(s) {
+    var v = s.video;
+    if (!v) return '';
+    var allow = 'accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+    if (v.kind === 'youtube') {
+      if (mediaInline) return '<div class="vid"><iframe src="https://www.youtube-nocookie.com/embed/' + esc(v.id) + '" title="YouTube video" referrerpolicy="strict-origin-when-cross-origin" allow="' + allow + '" allowfullscreen></iframe></div>';
+      return '<div class="vid" data-ytid="' + esc(v.id) + '"></div>';
+    }
+    if (v.kind === 'file') {
+      if (mediaInline) { var m = MEDIA[v.key]; return m && m.data ? '<div class="vid"><video controls preload="metadata" src="' + m.data + '"></video></div>' : ''; }
+      return '<div class="vid" data-vkey="' + esc(v.key) + '"></div>';
+    }
+    return '';
+  }
+  function hydrateVideos(root) {
+    if (!root) return;
+    [].forEach.call(root.querySelectorAll('[data-ytid]'), function (box) {
+      if (box.firstChild) return;
+      var f = document.createElement('iframe');
+      f.src = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(box.getAttribute('data-ytid'));
+      f.title = 'YouTube video';
+      f.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+      f.setAttribute('allow', 'accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
+      f.allowFullscreen = true;
+      box.appendChild(f);
+    });
+    [].forEach.call(root.querySelectorAll('[data-vkey]'), function (box) {
+      if (box.firstChild || box.dataset.busy) return;
+      box.dataset.busy = '1';
+      mediaURL(box.getAttribute('data-vkey')).then(function (u) {
+        if (!box.isConnected || box.firstChild) return;
+        if (!u) { box.textContent = 'This video is missing from this browser. Remove it and add it again.'; return; }
+        var v = document.createElement('video');
+        v.controls = true; v.preload = 'metadata'; v.src = u;
+        box.appendChild(v);
+      }).catch(function () { box.textContent = 'This video could not be played.'; });
+    });
+  }
+  /* Replaces a slide's video and forgets the stored file the slide used to have */
+  function setVideo(s, v) {
+    var old = s.video;
+    s.video = v;
+    if (old && old.kind === 'file' && (!v || v.key !== old.key)) { forgetMedia(old.key); mediaDelete(old.key); }
+  }
+  $('addvideo').onclick = function () { $('vidin').value = ''; $('vidin').click(); };
+  $('vidin').onchange = function () {
+    var f = $('vidin').files[0]; if (!f) return;
+    if (!/^video\//.test(f.type) && !/\.(mp4|webm|ogv|mov|m4v)$/i.test(f.name)) { setStatus('This file is not a video.', true); return; }
+    if (f.size > MAX_VIDEO) { setStatus('This video is larger than 100 MB. Choose a smaller file, or add it from YouTube.', true); return; }
+    var s = slide(), key = uid();
+    pendingMedia[key] = true;
+    setStatus('Storing the video…', false);
+    mediaPut(key, f).then(function () {
+      delete pendingMedia[key];
+      setVideo(s, { kind: 'file', key: key, name: f.name, type: f.type || '', size: f.size });
+      renderEditor(); renderStage(); queueSave(); setStatus('Video added to this slide', false);
+    }).catch(function (e) {
+      delete pendingMedia[key];
+      setStatus('The video could not be stored: ' + ((e && e.message) || 'unknown error'), true);
+    });
+  };
+  $('addyt').onclick = function () { $('ytlink').value = ''; $('ytmsg').textContent = ''; $('ytdialog').showModal(); $('ytlink').focus(); };
+  $('ytform').onsubmit = function (e) { e.preventDefault(); $('ytok').click(); };
+  $('ytcancel').onclick = function () { $('ytdialog').close(); };
+  $('ytok').onclick = function () {
+    var id = youtubeId($('ytlink').value);
+    if (!id) { $('ytmsg').textContent = 'This is not a YouTube link. Paste a link such as https://youtu.be/… or https://www.youtube.com/watch?v=…'; return; }
+    setVideo(slide(), { kind: 'youtube', id: id });
+    $('ytdialog').close();
+    renderEditor(); renderStage(); queueSave(); setStatus('YouTube video added to this slide', false);
+  };
+  $('delvideo').onclick = function () { setVideo(slide(), null); renderEditor(); renderStage(); queueSave(); };
 
   /* Files */
   function download(name, data, type) {
@@ -1099,13 +1980,72 @@ body.no-deck main{display:none}
   FILE_TYPES.pptx.accept[PPTX_MIME] = ['.pptx'];
   var handles = {}; /* deck id -> { handle, format }, for this visit only */
   function fileName(d, format) { return safeName(d.title) + (format === 'pptx' ? '.pptx' : '.tabbed-slides.json'); }
+  /* ===== 2026.1.11: animations. A slide with Animate Points fades its bullets in one click at a time, in PowerPoint as in Present. ===== */
+  function pointsTiming(spid, count) {
+    var id = 2, clicks = '';
+    function nid() { return ++id; }
+    for (var i = 0; i < count; i++) {
+      var tgt = '<p:tgtEl><p:spTgt spid="' + spid + '"><p:txEl><p:pRg st="' + i + '" end="' + i + '"/></p:txEl></p:spTgt></p:tgtEl>';
+      var a = nid(), b = nid(), c = nid(), s1 = nid(), f1 = nid();
+      clicks += '<p:par><p:cTn id="' + a + '" fill="hold"><p:stCondLst><p:cond delay="indefinite"/></p:stCondLst><p:childTnLst>' +
+        '<p:par><p:cTn id="' + b + '" fill="hold"><p:stCondLst><p:cond delay="0"/></p:stCondLst><p:childTnLst>' +
+        '<p:par><p:cTn id="' + c + '" presetID="10" presetClass="entr" presetSubtype="0" fill="hold" grpId="0" nodeType="clickEffect"><p:stCondLst><p:cond delay="0"/></p:stCondLst><p:childTnLst>' +
+        '<p:set><p:cBhvr><p:cTn id="' + s1 + '" dur="1" fill="hold"><p:stCondLst><p:cond delay="0"/></p:stCondLst></p:cTn>' + tgt +
+        '<p:attrNameLst><p:attrName>style.visibility</p:attrName></p:attrNameLst></p:cBhvr><p:to><p:strVal val="visible"/></p:to></p:set>' +
+        '<p:animEffect transition="in" filter="fade"><p:cBhvr><p:cTn id="' + f1 + '" dur="500"/>' + tgt + '</p:cBhvr></p:animEffect>' +
+        '</p:childTnLst></p:cTn></p:par></p:childTnLst></p:cTn></p:par></p:childTnLst></p:cTn></p:par>';
+    }
+    return '<p:timing><p:tnLst><p:par><p:cTn id="1" dur="indefinite" restart="never" nodeType="tmRoot"><p:childTnLst>' +
+      '<p:seq concurrent="1" nextAc="seek"><p:cTn id="2" dur="indefinite" nodeType="mainSeq"><p:childTnLst>' + clicks +
+      '</p:childTnLst></p:cTn><p:prevCondLst><p:cond evt="onPrev" delay="0"><p:tgtEl><p:sldTgt/></p:tgtEl></p:cond></p:prevCondLst>' +
+      '<p:nextCondLst><p:cond evt="onNext" delay="0"><p:tgtEl><p:sldTgt/></p:tgtEl></p:cond></p:nextCondLst></p:seq>' +
+      '</p:childTnLst></p:cTn></p:par></p:tnLst><p:bldLst><p:bldP spid="' + spid + '" grpId="0" build="p"/></p:bldLst></p:timing>';
+  }
+  /* Builds the .pptx, then adds the timing to the slides that animate their points */
+  function pptxBlob(d) {
+    return buildPptx(d).write({ outputType: 'blob' }).then(function (blob) {
+      var todo = [];
+      d.slides.forEach(function (s, i) { if (s.anim && !s.layout && !arrOf(s) && s.points.length) todo.push([i, s]); });
+      if (!todo.length || typeof window.JSZip !== 'function') return blob;
+      return window.JSZip.loadAsync(blob).then(function (z) {
+        return Promise.all(todo.map(function (item) {
+          var f = z.file('ppt/slides/slide' + (item[0] + 1) + '.xml');
+          if (!f) return null;
+          return f.async('string').then(function (xml) {
+            var m = xml.match(/<p:cNvPr id="(\d+)" name="TabbedSlides points"/);
+            if (!m) return;
+            var timing = pointsTiming(m[1], item[1].points.length), at = xml.indexOf('</p:clrMapOvr>');
+            xml = at >= 0 ? xml.slice(0, at + '</p:clrMapOvr>'.length) + timing + xml.slice(at + '</p:clrMapOvr>'.length) : xml.replace('</p:sld>', timing + '</p:sld>');
+            z.file(f.name, xml);
+          });
+        })).then(function () { return z.generateAsync({ type: 'blob', mimeType: PPTX_MIME }); });
+      });
+    });
+  }
+
   function deckBlob(d, format) {
-    if (format === 'pptx') return buildPptx(d).write({ outputType: 'blob' });
-    return Promise.resolve(new Blob([JSON.stringify({ version: 1, deck: d }, null, 2)], { type: 'application/json;charset=utf-8' }));
+    if (format === 'pptx') return withMedia(d, function () { return pptxBlob(d); });
+    return withMedia(d, function () {
+      var copy = JSON.parse(JSON.stringify(d));
+      copy.slides.forEach(function (s) { if (s.video && s.video.kind === 'file') s.video.data = MEDIA[s.video.key].data; });
+      return new Blob([JSON.stringify({ version: 1, deck: copy }, null, 2)], { type: 'application/json;charset=utf-8' });
+    });
   }
   /* asNew: always ask where to save (Save as). Must start inside the click, before any waiting. */
   function saveDeck(format, asNew) {
     var d = deck(); format = format || d.format || 'json';
+    /* v2.0.3: a deck opened from Tabbed Folders is saved back there while Folders is open */
+    if (!asNew && d.link && window.TabbedLink && TabbedLink.available(d.link) && format === (d.format || 'json')) {
+      var ok = d.linkSafe || confirm('This PowerPoint file was made in another program. Saving it back replaces the original in Tabbed Folders, and what Tabbed Slides cannot keep (animations, some effects) will be lost. Save it back anyway?');
+      if (ok) {
+        setStatus(format === 'pptx' ? 'Building the PowerPoint file…' : 'Saving…', false);
+        deckBlob(d, format).then(function (blob) { return TabbedLink.saveBack(d.link, blob, d.link.name); }).then(function (r) {
+          if (r.ok) { d.fileName = r.name; d.link.name = r.name; d.linkSafe = true; writeStore(); setStatus('Saved back to Tabbed Folders · ' + r.name, false); }
+          else { d.link = null; writeStore(); setStatus('Not saved back: ' + (r.error || 'Tabbed Folders did not answer') + '. Press Save again to save a copy.', true); }
+        }).catch(function (e) { setStatus('Could not save the file: ' + ((e && e.message) || 'unknown error'), true); });
+        return;
+      }
+    }
     if (format === 'pptx' && typeof window.PptxGenJS !== 'function') { alert('The PowerPoint library did not load. Check your connection once, then try again.'); return; }
     var known = handles[d.id], target;
     if (!asNew && known && known.format === format && known.handle.requestPermission) {
@@ -1131,7 +2071,7 @@ body.no-deck main{display:none}
   $('savedeck').onclick = function () { saveDeck(null, false); };
   $('savepptx').onclick = function () { saveDeck('pptx', true); };
 
-  function openFile(f, handle) {
+  function openFile(f, handle, link, after) {
     var isPptx = /\.pptx$/i.test(f.name);
     setStatus('Opening ' + f.name + '…', false);
     var job = isPptx ? f.arrayBuffer().then(function (buf) { return importPptx(buf, f.name); })
@@ -1139,15 +2079,18 @@ body.no-deck main{display:none}
         var data = JSON.parse(text), d = data && data.deck;
         if (!isDeck(d)) throw new Error('This file is not a Tabbed Slides deck.');
         d.theme = d.theme || 'slate';
-        return { deck: d, note: '' };
+        return importVideos(d).then(function () { return { deck: d, note: '' }; });
       });
     job.then(function (r) {
       var d = r.deck;
       d.id = uid(); d.current = 0; d.format = isPptx ? 'pptx' : 'json'; d.fileName = f.name;
+      /* v2.0.3: opened from Tabbed Folders; Save sends it back there */
+      if (link) { d.link = link; d.linkSafe = !isPptx || !!r.ownFile; }
       /* Saving over a PowerPoint file from another app would lose what Tabbed Slides cannot keep, so Save asks where to save first. */
       if (handle && (!isPptx || r.ownFile)) handles[d.id] = { handle: handle, format: d.format };
       state.decks.push(d); state.activeId = d.id; render(); writeStore();
-      setStatus('Opened ' + f.name + (r.note ? '. ' + r.note : ''), false);
+      if (after) after(d);
+      setStatus('Opened ' + f.name + (link ? ' from Tabbed Folders · Save writes it back there' : '') + (r.note ? '. ' + r.note : ''), false);
     }).catch(function (e) {
       var msg = isPptx && !(e && e.tabbed) ? 'This file could not be read as a PowerPoint (.pptx) file.' : ((e && e.message) || 'unknown error');
       setStatus('Could not open the file: ' + msg, true); alert('Could not open the file. ' + msg);
@@ -1856,6 +2799,7 @@ body.no-deck main{display:none}
     }).join('\n');
     var t = theme(d);
     return '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>' + esc(d.title) + '</title>\n<style>\n' +
+      ARR_CSS + '\n' + SHAPE_CSS + '\n' +
       'html,body{margin:0;height:100%;background:#13233d;font-family:"Literata",Georgia,serif}\n' +
       '.slide{display:none;position:fixed;inset:0;margin:auto;width:min(96vw,calc(92vh*16/9));height:min(92vh,calc(96vw*9/16))}\n' +
       '.slide.on{display:block}\n' +
@@ -1879,7 +2823,12 @@ body.no-deck main{display:none}
       'document.addEventListener("click",function(e){if(e.clientX>window.innerWidth/2)next();else prev()});\n' +
       'show(0,0)})();\n<\/script>\n</body>\n</html>\n';
   }
-  $('exporthtml').onclick = function () { var d = deck(); download(safeName(d.title) + '.html', htmlDeck(d), 'text/html;charset=utf-8'); setStatus('HTML file saved to your downloads', false); };
+  $('exporthtml').onclick = function () {
+    var d = deck();
+    withMedia(d, function () { mediaInline = true; try { return htmlDeck(d); } finally { mediaInline = false; } }).then(function (html) {
+      download(safeName(d.title) + '.html', html, 'text/html;charset=utf-8'); setStatus('HTML file saved to your downloads', false);
+    }).catch(function (e) { setStatus('HTML export failed: ' + ((e && e.message) || 'unknown error'), true); });
+  };
 
   /* Free-layout slides back to PowerPoint, at the same positions */
   function pptTextRuns(paras) {
@@ -1979,22 +2928,35 @@ body.no-deck main{display:none}
       d.slides.forEach(function (s) {
         var sl = pptx.addSlide();
         if (s.layout) { addFreeSlide(pptx, sl, s, d); if (s.notes) sl.addNotes(s.notes); return; }
+        if (arrOf(s)) { arrPptx(pptx, sl, s, d, PW, PH); shapesPptx(pptx, sl, s, PW, PH); if (s.notes) sl.addNotes(s.notes); return; }
         sl.background = { color: t.pptPaper };
         sl.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 13.33 * kx, h: 0.18 * ky, fill: { color: t.pptAccent }, line: { color: t.pptAccent }, objectName: 'TabbedSlides standard' });
-        sl.addText(s.title || 'Untitled slide', { x: 0.6 * kx, y: 0.35 * ky, w: 12.1 * kx, h: 1.0 * ky, fontFace: 'Georgia', fontSize: 30, bold: true, color: t.pptHeader, valign: 'middle' });
-        var rows = chartRows(s.chart), hasImage = !!(s.image && s.image.indexOf('data:image/') === 0), hasChart = rows.length > 0;
+        sl.addText(pptRuns(s.title || 'Untitled slide', { fontFace: 'Georgia', fontSize: 30, bold: true, color: t.pptHeader }), { x: 0.6 * kx, y: 0.35 * ky, w: 12.1 * kx, h: 1.0 * ky, valign: 'middle' });
+        var rows = chartRows(s.chart), pics = picsOf(s), hasImage = pics.length > 0, hasChart = rows.length > 0;
         var textW = (hasImage || hasChart) ? 6.4 : 12.1;
         if (s.points.length) {
-          sl.addText(s.points.map(function (p) { return { text: p, options: { bullet: true, breakLine: true } }; }),
-            { x: 0.6 * kx, y: 1.6 * ky, w: textW * kx, h: 5.3 * ky, fontFace: 'Georgia', fontSize: 20, color: t.pptInk, valign: 'top', paraSpaceAfter: 8 });
+          sl.addText(pptBullets(s.points, { fontFace: 'Georgia', fontSize: 20, color: t.pptInk }),
+            { x: 0.6 * kx, y: 1.6 * ky, w: textW * kx, h: 5.3 * ky, valign: 'top', paraSpaceAfter: 8, objectName: 'TabbedSlides points' });
         }
-        var sideH = (hasImage && hasChart) ? 2.6 : 5.2, y = 1.6;
-        if (hasImage) { sl.addImage({ data: s.image, x: 7.4 * kx, y: y * ky, w: 5.3 * kx, h: sideH * ky, sizing: { type: 'contain', w: 5.3 * kx, h: sideH * ky } }); y += sideH + 0.1; }
+        var hasVideo = !!s.video, sideCount = pics.length + (hasChart ? 1 : 0) + (hasVideo ? 1 : 0);
+        var sideH = sideCount >= 3 ? 1.7 : sideCount === 2 ? 2.6 : 5.2, y = 1.6;
+        pics.forEach(function (u) { sl.addImage({ data: u, x: 7.4 * kx, y: y * ky, w: 5.3 * kx, h: sideH * ky, sizing: { type: 'contain', w: 5.3 * kx, h: sideH * ky } }); y += sideH + 0.1; });
+        if (hasVideo && s.video.kind === 'file' && MEDIA[s.video.key] && MEDIA[s.video.key].data) {
+          var vh = Math.min(sideH, 5.3 * 9 / 16);
+          sl.addMedia({ type: 'video', data: MEDIA[s.video.key].data, x: 7.4 * kx, y: y * ky, w: 5.3 * kx, h: vh * ky, cover: undefined });
+          y += sideH + 0.1;
+        } else if (hasVideo && s.video.kind === 'youtube') {
+          var yh = Math.min(sideH, 5.3 * 9 / 16), yurl = 'https://www.youtube.com/watch?v=' + s.video.id;
+          sl.addShape(pptx.ShapeType.rect, { x: 7.4 * kx, y: y * ky, w: 5.3 * kx, h: yh * ky, fill: { color: '111111' }, line: { color: '111111' }, objectName: 'YouTube video' });
+          sl.addText('▶  Watch on YouTube', { x: 7.4 * kx, y: y * ky, w: 5.3 * kx, h: yh * ky, align: 'center', valign: 'middle', fontFace: 'Arial', fontSize: 16, color: 'FFFFFF', hyperlink: { url: yurl, tooltip: 'Watch on YouTube' } });
+          y += sideH + 0.1;
+        }
         if (hasChart) {
           sl.addChart(s.chart.type === 'line' ? pptx.ChartType.line : pptx.ChartType.bar,
             [{ name: s.title || 'Values', labels: rows.map(function (r) { return r.label; }), values: rows.map(function (r) { return r.value; }) }],
             { x: 7.4 * kx, y: y * ky, w: 5.3 * kx, h: sideH * ky, chartColors: [t.pptAccent], showLegend: false, showValue: true, dataLabelFontSize: 11, catAxisLabelFontSize: 11, valAxisLabelFontSize: 10 });
         }
+        shapesPptx(pptx, sl, s, PW, PH);
         if (s.notes) sl.addNotes(s.notes);
       });
       return pptx;
@@ -2004,7 +2966,7 @@ body.no-deck main{display:none}
     if (typeof window.PptxGenJS !== 'function') { alert('The PowerPoint library did not load. Check your connection once, then try again.'); return; }
     setStatus('Building the PowerPoint file…', false);
     try {
-      buildPptx(d).writeFile({ fileName: safeName(d.title) + '.pptx' }).then(function () {
+      withMedia(d, function () { return pptxBlob(d); }).then(function (blob) { download(safeName(d.title) + '.pptx', blob, PPTX_MIME); }).then(function () {
         setStatus('PowerPoint file saved to your downloads', false);
       }).catch(function (e) { setStatus('PowerPoint export failed: ' + (e.message || 'unknown error'), true); });
     } catch (e) { setStatus('PowerPoint export failed: ' + (e.message || 'unknown error'), true); }
@@ -2014,12 +2976,13 @@ body.no-deck main{display:none}
   $('printdeck').onclick = function () {
     var d = deck(), area = $('printarea');
     area.innerHTML = d.slides.map(function (s) { return s.layout ? '<div class="flpage">' + slideHTML(s, d, null) + '</div>' : slideHTML(s, d, null); }).join('');
+    hydrateVideos(area);
     window.print();
   };
 
   /* Present with reveal and notes */
   function showPresent() {
-    presIndex = deck().current; presStep = 0; notesOn = true;
+    presIndex = deck().current; presStep = 0; notesOn = true; fullSlide = false;
     drawPresent();
     $('present').classList.add('on');
     document.body.style.overflow = 'hidden';
@@ -2030,10 +2993,12 @@ body.no-deck main{display:none}
     presIndex = Math.max(0, Math.min(d.slides.length - 1, presIndex));
     var s = d.slides[presIndex], n = s.points.length;
     presStep = Math.max(0, Math.min(n, presStep));
-    $('pslide').innerHTML = slideHTML(s, d, presStep);
+    $('pslide').innerHTML = slideHTML(s, d, presStep); hydrateVideos($('pslide'));
     $('pbar').textContent = (presIndex + 1) + ' / ' + d.slides.length + (n ? '  ·  point ' + presStep + ' of ' + n : '');
-    $('pnotes').hidden = !notesOn;
-    $('present').classList.toggle('notes-on', notesOn);
+    $('pnotes').hidden = !notesOn || fullSlide;
+    $('present').classList.toggle('notes-on', notesOn && !fullSlide);
+    $('present').classList.toggle('full', fullSlide);
+    $('pfull').setAttribute('aria-pressed', String(fullSlide));
     $('pnotes').textContent = s.notes || 'No speaker notes for this slide.';
   }
   function nextPresent() {
@@ -2053,6 +3018,12 @@ body.no-deck main{display:none}
     deck().current = presIndex; render();
   }
   $('presentbtn').onclick = showPresent;
+  function toggleFull() {
+    fullSlide = !fullSlide;
+    if (fullSlide) { notesBefore = notesOn; notesOn = false; } else { notesOn = notesBefore; }
+    drawPresent();
+  }
+  $('pfull').onclick = toggleFull;
   $('pclose').onclick = closePresent;
   $('pprev').onclick = prevPresent;
   $('pnext').onclick = nextPresent;
@@ -2061,7 +3032,8 @@ body.no-deck main{display:none}
     if (e.key === 'Escape') closePresent();
     else if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); nextPresent(); }
     else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prevPresent(); }
-    else if (e.key === 'n' || e.key === 'N') { notesOn = !notesOn; drawPresent(); }
+    else if (e.key === 'n' || e.key === 'N') { fullSlide = false; notesOn = !notesOn; drawPresent(); }
+    else if (e.key === 'f' || e.key === 'F') { toggleFull(); }
   });
 
   /* Ribbon sections */
@@ -2093,7 +3065,9 @@ body.no-deck main{display:none}
   if (state.decks.length && !state.decks.some(function (d) { return d.id === state.activeId; })) state.activeId = state.decks[0].id;
   state.decks.forEach(function (d) { d.theme = d.theme || 'slate'; });
   render();
-  if (!readStore()) writeStore();
+  hydratePics(state).then(function () { render(); writeStore(); });
+  /* v2.0.3: receive files from Tabbed Folders */
+  if (window.TabbedLink) TabbedLink.init(function (file, link) { openFile(file, null, link); });
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(function () {}); } catch (e) {}
   /* Offline: the service worker saves the app on the first online visit */
   if ('serviceWorker' in navigator) window.addEventListener('load', function () {
@@ -2122,7 +3096,7 @@ body.no-deck main{display:none}
       }
       return out;
     }
-    function slideText(s) { return s.layout ? layoutText(s.layout) : s.title + '\n' + s.points.join('\n'); }
+    function slideText(s) { return s.layout ? layoutText(s.layout) : plainOf(s.title) + '\n' + s.points.map(plainOf).join('\n'); }
     function ask(msg) {
       return new Promise(function (resolve, reject) {
         if (!worker) {
@@ -2232,6 +3206,807 @@ body.no-deck main{display:none}
     setTimeout(function () { schedule(300); }, 0);
   })();
 
+  /* ===== 2026.1.9: formatted words in titles and points (bold, italic, underline, colour) =====
+     Stored text is plain text, or text with <b>, <i>, <u> and <span style="color:#rrggbb"> only. */
+  function richEscape(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function richRuns(stored) {
+    var str = String(stored == null ? '' : stored), runs = [], st = { b: false, i: false, u: false, c: null, n: false }, re = /<(\/?)(b|i|u|span)((?:\s[^>]*)?)>/g, pos = 0, m;
+    function emit(raw) {
+      if (!raw) return;
+      var t = raw.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+      var last = runs[runs.length - 1];
+      if (last && last.b === st.b && last.i === st.i && last.u === st.u && last.c === st.c && last.n === st.n) last.text += t;
+      else runs.push({ text: t, b: st.b, i: st.i, u: st.u, c: st.c, n: st.n });
+    }
+    while ((m = re.exec(str))) {
+      emit(str.slice(pos, m.index)); pos = re.lastIndex;
+      var close = m[1] === '/', tag = m[2];
+      if (tag === 'b') st.b = !close;
+      else if (tag === 'i') st.i = !close;
+      else if (tag === 'u') st.u = !close;
+      else if (close) { st.c = null; st.n = false; }
+      else { var cm = /color:\s*(#[0-9a-fA-F]{6})/.exec(m[3]); st.c = cm ? cm[1].toLowerCase() : null; st.n = /font-weight:\s*(400|normal)/.test(m[3]); }
+    }
+    emit(str.slice(pos));
+    return runs;
+  }
+  function storeRuns(runs) {
+    return runs.map(function (r) {
+      var h = richEscape(r.text);
+      var css = (r.c ? 'color:' + r.c : '') + (r.n ? (r.c ? ';' : '') + 'font-weight:400' : '');
+      if (css) h = '<span style="' + css + '">' + h + '</span>';
+      if (r.u) h = '<u>' + h + '</u>';
+      if (r.i) h = '<i>' + h + '</i>';
+      if (r.b) h = '<b>' + h + '</b>';
+      return h;
+    }).join('');
+  }
+  function richHTML(stored) { return storeRuns(richRuns(stored)); }
+  function plainOf(stored) { return richRuns(stored).map(function (r) { return r.text; }).join(''); }
+  /* Applies fn to the text of each run, keeping the formatting */
+  function richMap(stored, fn) { return storeRuns(richRuns(stored).map(function (r) { return Object.assign({}, r, { text: fn(r.text) }); })); }
+  function hexOf(c) {
+    c = String(c || '').trim();
+    var m = /^rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(c);
+    if (m) return '#' + [m[1], m[2], m[3]].map(function (v) { return ('0' + Number(v).toString(16)).slice(-2); }).join('');
+    return /^#[0-9a-f]{6}$/i.test(c) ? c.toLowerCase() : null;
+  }
+  /* Reads the formatted text of a contenteditable element back into stored markup */
+  function richFrom(el) {
+    var runs = [];
+    (function walk(node, st) {
+      for (var n = node.firstChild; n; n = n.nextSibling) {
+        if (n.nodeType === 3) { if (n.nodeValue) runs.push({ text: n.nodeValue, b: st.b, i: st.i, u: st.u, c: st.c, n: st.n }); }
+        else if (n.nodeType === 1) {
+          if (n.tagName === 'BR') { runs.push({ text: ' ', b: st.b, i: st.i, u: st.u, c: st.c, n: st.n }); continue; }
+          var ns = { b: st.b || n.tagName === 'B' || n.tagName === 'STRONG', i: st.i || n.tagName === 'I' || n.tagName === 'EM', u: st.u || n.tagName === 'U', c: st.c, n: st.n || (!!n.style && (n.style.fontWeight === '400' || n.style.fontWeight === 'normal')) };
+          var col = n.style && n.style.color ? hexOf(n.style.color) : (n.tagName === 'FONT' ? hexOf(n.getAttribute('color')) : null);
+          if (col) ns.c = col;
+          walk(n, ns);
+        }
+      }
+    })(el, { b: false, i: false, u: false, c: null, n: false });
+    var merged = [];
+    runs.forEach(function (r) {
+      var l = merged[merged.length - 1];
+      if (l && l.b === r.b && l.i === r.i && l.u === r.u && l.c === r.c && l.n === r.n) l.text += r.text; else merged.push(Object.assign({}, r));
+    });
+    if (merged.length) merged[merged.length - 1].text = merged[merged.length - 1].text.replace(/\s+$/, '');
+    return storeRuns(merged.filter(function (r) { return r.text !== ''; }));
+  }
+  /* PowerPoint text: one text object per formatted piece; the bullet and the line break sit on the first and last piece */
+  function fmtOpts(r) {
+    var o = {};
+    if (r.n) o.bold = false; else if (r.b) o.bold = true;
+    if (r.i) o.italic = true;
+    if (r.u) o.underline = { style: 'sng' };
+    if (r.c) o.color = r.c.slice(1).toUpperCase();
+    return o;
+  }
+  function pptRuns(stored, base) {
+    return richRuns(stored).map(function (r) { return { text: r.text, options: Object.assign({}, base, fmtOpts(r)) }; });
+  }
+  function pptBullets(points, base) {
+    var out = [];
+    points.forEach(function (p) {
+      var runs = richRuns(p);
+      runs.forEach(function (r, k) {
+        var o = Object.assign({}, base, fmtOpts(r));
+        if (k === 0) o.bullet = true;
+        if (k === runs.length - 1) o.breakLine = true;
+        out.push({ text: r.text, options: o });
+      });
+    });
+    return out;
+  }
+
+  /* ---------- Bold, italic, underline and colour for the selected words (Formatting toolbar) ---------- */
+  var FMT_COLOURS = ['#0a246a', '#c00000', '#007a33', '#e36c09', '#404040'];
+  /* The selected characters get the format: the element is redrawn from the stored characters, so the heading's own bold does not interfere */
+  function fmtSelected(cmd, value) {
+    var sel = window.getSelection(), st = $('stage');
+    if (!sel || !sel.rangeCount || sel.isCollapsed || !st.contains(sel.anchorNode)) { setStatus('Select the words on the slide first, then choose the format.', false); return; }
+    if (slide().layout) { setStatus('Slides from PowerPoint keep their own text formatting.', false); return; }
+    var start = sel.anchorNode.nodeType === 3 ? sel.anchorNode.parentNode : sel.anchorNode;
+    var el = start.closest ? start.closest('h2[contenteditable],li[contenteditable]') : null;
+    if (!el) { setStatus('Select words in a title or a point.', false); return; }
+    var r = sel.getRangeAt(0), pre = document.createRange();
+    pre.selectNodeContents(el); pre.setEnd(r.startContainer, r.startOffset);
+    var a = pre.toString().length, bEnd = a + r.toString().length;
+    var chars = [];
+    richRuns(richFrom(el)).forEach(function (run) {
+      Array.from(run.text).forEach(function (ch) { chars.push({ ch: ch, b: run.b, i: run.i, u: run.u, c: run.c, n: run.n }); });
+    });
+    bEnd = Math.min(bEnd, chars.length);
+    if (bEnd <= a) return;
+    var rng = chars.slice(a, bEnd), key = cmd === 'bold' ? 'b' : cmd === 'italic' ? 'i' : cmd === 'underline' ? 'u' : null;
+    var isTitle = el.tagName === 'H2';
+    if (key) {
+      var on = !rng.every(function (c) { return key === 'b' && isTitle ? !c.n : c[key]; });
+      rng.forEach(function (c) { if (key === 'b' && isTitle) { c.n = !on; c.b = false; } else c[key] = on; });
+    }
+    else if (cmd === 'color') rng.forEach(function (c) { c.c = value; });
+    else if (cmd === 'clear') rng.forEach(function (c) { c.b = false; c.i = false; c.u = false; c.c = null; c.n = false; });
+    var runs = [];
+    chars.forEach(function (c) {
+      var l = runs[runs.length - 1];
+      if (l && l.b === c.b && l.i === c.i && l.u === c.u && l.c === c.c && l.n === c.n) l.text += c.ch;
+      else runs.push({ text: c.ch, b: c.b, i: c.i, u: c.u, c: c.c, n: c.n });
+    });
+    el.innerHTML = storeRuns(runs);
+    setSelOffsets(el, a, bEnd);
+    onStageEdit({ target: st });
+  }
+  function setSelOffsets(el, a, b) {
+    var w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT), n, pos = 0, sa = null, sb = null;
+    while ((n = w.nextNode())) {
+      var len = n.nodeValue.length;
+      if (sa === null && a <= pos + len) sa = { n: n, o: a - pos };
+      if (sb === null && b <= pos + len) { sb = { n: n, o: b - pos }; break; }
+      pos += len;
+    }
+    if (sa && sb) { var rg = document.createRange(); rg.setStart(sa.n, sa.o); rg.setEnd(sb.n, sb.o); var s2 = window.getSelection(); s2.removeAllRanges(); s2.addRange(rg); }
+  }
+  function addFmtButtons(box) {
+    function btn(inner, title, act, style) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.title = title; b.setAttribute('aria-label', title);
+      b.innerHTML = '<span style="' + (style || '') + '">' + inner + '</span>';
+      b.addEventListener('mousedown', function (e) { e.preventDefault(); });
+      b.onclick = act;
+      box.append(b);
+      toolButtons.push({ el: b, o: { need: true } });
+    }
+    var sep = document.createElement('span'); sep.className = 'sep'; box.append(sep);
+    btn(SVG.boldtext, 'Bold (selected words)', function () { fmtSelected('bold'); });
+    btn(SVG.italictext, 'Italic (selected words)', function () { fmtSelected('italic'); });
+    btn('<u>U</u>', 'Underline (selected words)', function () { fmtSelected('underline'); });
+    var sep2 = document.createElement('span'); sep2.className = 'sep'; box.append(sep2);
+    FMT_COLOURS.forEach(function (c) {
+      btn('<i class="fmt-sw" style="background:' + c + '"></i>', 'Text colour ' + c, function () { fmtSelected('color', c); });
+    });
+    var sep3 = document.createElement('span'); sep3.className = 'sep'; box.append(sep3);
+    btn('Clear', 'Clear formatting of the selected words', function () { fmtSelected('clear'); });
+  }
+
+  /* ===== Office 2003 shell (2026.1.10) ===== */
+  (function addArrCss() { var st = document.createElement('style'); st.id = 'arr-css'; st.textContent = ARR_CSS + SHAPE_CSS + EDIT_CSS; document.head.appendChild(st); })();
+
+  function capitalise(k) { return String(k).charAt(0).toUpperCase() + String(k).slice(1); }
+  function hasDeck() { return !!(state && state.decks.length); }
+  function fire(id) {
+    var b = $(id);
+    if (!b || b.disabled) return;
+    if (b.type === 'checkbox') { b.checked = !b.checked; b.dispatchEvent(new Event('change', { bubbles: true })); return; }
+    b.click();
+  }
+  function isOn(id) { var b = $(id); return !!b && (b.type === 'checkbox' ? b.checked : b.getAttribute('aria-pressed') === 'true'); }
+  function choose(id, value) {
+    return function () { var s = $(id); if (!s) return; s.value = value; s.dispatchEvent(new Event('change', { bubbles: true })); };
+  }
+  function optionItems(id, label) {
+    var s = $(id); if (!s) return [];
+    return Array.prototype.map.call(s.options, function (o) {
+      return { label: label + ': ' + o.text, id: id, act: choose(id, o.value), check: function () { return s.value === o.value; } };
+    });
+  }
+
+  /* ---------- Title bar, status bar ---------- */
+  function refreshChrome() {
+    var d = hasDeck() ? deck() : null;
+    if (typeof syncToolbars === 'function') syncToolbars();
+    $('titletext').textContent = d ? 'Tabbed Slides - ' + (d.title || 'Untitled') : 'Tabbed Slides';
+    $('themelabel').textContent = d ? 'Theme: ' + capitalise(d.theme || 'slate') : '';
+    renderSbViews();
+  }
+  function renderSbViews() {
+    var box = $('sbviews'); if (!box) return;
+    box.replaceChildren();
+    VIEWS.forEach(function (v) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.title = v[1]; b.setAttribute('aria-label', v[1]);
+      b.innerHTML = SVG[v[0]] + '<span>' + v[1] + '</span>';
+      b.setAttribute('aria-pressed', String(v[0] !== 'show' && view === v[0]));
+      b.onclick = function () { setView(v[0]); };
+      box.append(b);
+    });
+  }
+
+  /* ---------- Views, zoom, task pane, left pane ---------- */
+  function setView(v) {
+    if (v === 'show') { if (hasDeck()) showPresent(); return; }
+    view = v;
+    var normal = v === 'normal';
+    $('stage').hidden = !normal;
+    $('stagehelp').hidden = !normal;
+    $('notesbox').hidden = !normal || !notesShown;
+    $('sorter').hidden = normal;
+    if (!normal) renderSorter();
+    renderSbViews();
+  }
+  function setZoom(z) {
+    zoomNow = z;
+    document.documentElement.style.setProperty('--zoom', String(z / 100));
+    if ($('zoomsel')) $('zoomsel').value = String(z);
+  }
+  function toggleNotes() {
+    notesShown = !notesShown;
+    $('notesbox').hidden = !notesShown || view !== 'normal';
+  }
+  function showPane(p) { paneNow = p; paneOpen = true; applyPaneVisibility(); renderPane(); }
+  function togglePane() { paneOpen = !paneOpen; applyPaneVisibility(); if (paneOpen) renderPane(); }
+  function applyPaneVisibility() {
+    $('taskpane').hidden = !paneOpen;
+    document.querySelector('main').classList.toggle('no-tp', !paneOpen);
+  }
+  function renderPane() {
+    $('tpSel').value = paneNow;
+    $('tpTitle').textContent = PANES[paneNow];
+    [].forEach.call(document.querySelectorAll('[data-pane]'), function (sec) { sec.hidden = sec.getAttribute('data-pane') !== paneNow; });
+    if (paneNow === 'comments') renderComments();
+    if (paneNow === 'layout') renderGallery($('galLayout'), null, false);
+    if (paneNow === 'ideas') renderIdeas();
+    if (paneNow === 'design') renderThemes();
+  }
+  function setLP(which) {
+    lpNow = which;
+    $('slidelist').hidden = which !== 'slides';
+    $('outline').hidden = which !== 'outline';
+    $('lpSlides').setAttribute('aria-selected', String(which === 'slides'));
+    $('lpOutline').setAttribute('aria-selected', String(which === 'outline'));
+    if (which === 'outline') renderOutline();
+    $('folderlist').hidden = which !== 'folders';
+    $('lpFolders').setAttribute('aria-selected', String(which === 'folders'));
+    if (which === 'folders' && folder) flList().catch(function () {});
+  }
+  function toggleFS() {
+    if (document.fullscreenElement) { document.exitFullscreen().catch(function () {}); return; }
+    if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(function () { setStatus('Full screen is not available here', true); });
+  }
+
+  /* ---------- Slide arrangements (the Designer) ---------- */
+  function applyArr(k) {
+    var s = slide(); if (!s || s.layout) return;
+    if (k) s.arr = k; else delete s.arr;
+    renderEditor(); renderStage(); renderSlides(); queueSave();
+  }
+  function ratioKey(src) { return src.length + ':' + src.slice(-48); }
+  function getRatio(src) {
+    var k = ratioKey(src);
+    if (ratioCache[k]) return Promise.resolve(ratioCache[k]);
+    return new Promise(function (resolve) {
+      var im = new Image();
+      im.onload = function () { ratioCache[k] = (im.naturalWidth || 1) / (im.naturalHeight || 1); resolve(ratioCache[k]); };
+      im.onerror = function () { resolve(1.5); };
+      im.src = src;
+    });
+  }
+  /* Called when a picture has been put on a slide: the Design Ideas pane opens for it */
+  function afterPictureInserted(s, w, h) {
+    var p0 = picsOf(s)[0];
+    if (!s || s.layout || !p0) return;
+    ratioCache[ratioKey(p0)] = (w || 1) / (h || 1);
+    showPane('ideas');
+  }
+  function ideaOrder(s, ratio) {
+    var order;
+    if (ratio >= 1.25) order = ['photoFull', 'photoTop', 'photoCenter', 'standard', 'photoLeft'];
+    else if (ratio <= 0.8) order = ['photoLeft', 'standard', 'photoCenter', 'photoTop', 'photoFull'];
+    else order = ['photoCenter', 'photoLeft', 'standard', 'photoTop', 'photoFull'];
+    if (s.points.length > 4) { order = order.filter(function (k) { return k !== 'photoFull' && k !== 'photoCenter'; }); order.push('photoCenter', 'photoFull'); }
+    return order;
+  }
+  function thumbHTML(s, d, arr) {
+    return '<div class="thumb" style="--ts:.125"><div class="thumb-in">' + slideThumb(Object.assign({}, s, { arr: arr || null }), d) + '</div></div>';
+  }
+  function renderGallery(box, order, suggested) {
+    var s = slide(), d = deck();
+    box.replaceChildren();
+    if (s.layout) { box.innerHTML = '<p class="help">This slide keeps the layout it had in PowerPoint, so its arrangement is not changed here.</p>'; return; }
+    (order || ARR_KEYS).forEach(function (k, i) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'gal-item';
+      b.setAttribute('aria-pressed', String(k === 'standard' ? !s.arr : s.arr === k));
+      b.innerHTML = thumbHTML(s, d, k === 'standard' ? null : k) + '<span class="gal-cap">' + ARR_NAMES[k] + '</span>' + (suggested && i === 0 ? '<span class="gal-badge">Suggested first</span>' : '');
+      b.onclick = function () { applyArr(k === 'standard' ? null : k); };
+      box.append(b);
+    });
+  }
+  function renderIdeas() {
+    var s = slide(), help = $('ideaHelp'), box = $('galIdeas');
+    box.replaceChildren();
+    if (s.layout) { help.textContent = 'This slide keeps its PowerPoint layout.'; return; }
+    if (!picsOf(s).length) {
+      help.textContent = 'Insert a picture on this slide, and Design Ideas will suggest arrangements for it.';
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'tp-btn'; b.textContent = 'Insert picture…';
+      b.onclick = function () { fire('addpic'); };
+      box.append(b);
+      return;
+    }
+    help.textContent = 'Working out the suggestions…';
+    getRatio(picsOf(s)[0]).then(function (r) {
+      if (slide() !== s || paneNow !== 'ideas') return;
+      help.textContent = 'Suggested for this photo (' + (r >= 1.25 ? 'landscape' : r <= 0.8 ? 'portrait' : 'square') + '). Click an arrangement to use it.';
+      renderGallery(box, ideaOrder(s, r), true);
+    });
+  }
+  function renderThemes() {
+    var box = $('themeTiles'), d = deck();
+    box.replaceChildren();
+    Object.keys(THEMES).forEach(function (k) {
+      var t = THEMES[k], b = document.createElement('button');
+      b.type = 'button'; b.className = 'theme-tile';
+      b.setAttribute('aria-pressed', String((d.theme || 'slate') === k));
+      b.innerHTML = '<span class="sw" style="background:linear-gradient(' + t.header + ' 0 38%,' + t.accent + ' 38% 62%,' + t.paper + ' 62%)"></span><span>' + capitalise(k) + '</span>';
+      b.onclick = function () { choose('theme', k)(); renderPane(); };
+      box.append(b);
+    });
+  }
+
+  /* ---------- Left pane (thumbnails, outline) and Slide Sorter ---------- */
+  function renderOutline() {
+    var ol = $('outline'), d = deck();
+    ol.replaceChildren();
+    d.slides.forEach(function (s, i) {
+      var li = document.createElement('li'), b = document.createElement('button');
+      b.type = 'button'; b.className = 'ol-item' + (i === d.current ? ' current' : '');
+      var n = document.createElement('span'); n.className = 'ol-n'; n.textContent = String(i + 1);
+      var t = document.createElement('span'); t.className = 'ol-t';
+      var h = document.createElement('strong'); h.textContent = plainOf(s.title) || 'Untitled slide';
+      t.append(h);
+      var pts = s.layout ? [] : (s.points || []).slice(0, 5).map(plainOf);
+      if (pts.length) { var p = document.createElement('span'); p.className = 'ol-p'; p.textContent = pts.join('\n'); t.append(p); }
+      b.append(n, t);
+      b.onclick = function () { d.current = i; render(); queueSave(); };
+      li.append(b); ol.append(li);
+    });
+  }
+  function renderSorter() {
+    var box = $('sorter'), d = deck();
+    box.replaceChildren();
+    d.slides.forEach(function (s, i) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'so-item' + (i === d.current ? ' current' : '');
+      b.innerHTML = '<div class="thumb" style="--ts:.18"><div class="thumb-in">' + slideThumb(s, d) + '</div></div><span class="so-n">' + (i + 1) + '</span>';
+      b.onclick = function () { d.current = i; render(); queueSave(); };
+      b.ondblclick = function () { d.current = i; setView('normal'); render(); queueSave(); };
+      box.append(b);
+    });
+  }
+  /* Called after every slide-list change: keeps the panes that show the deck in step with it */
+  function refreshOffice() {
+    if (!hasDeck()) { refreshChrome(); return; }
+    renderOutline();
+    if (view === 'sorter') renderSorter();
+    if (paneOpen) renderPane();
+    refreshChrome();
+  }
+
+  /* ---------- Find and Replace (from Tabbed Word) ---------- */
+  function openFind() { if (!hasDeck()) return; $('finddlg').showModal(); $('findtxt').focus(); $('findtxt').select(); }
+  function slideHas(s, q) {
+    if (s.layout) return false;
+    var l = q.toLowerCase();
+    function has(t) { return String(t || '').toLowerCase().indexOf(l) >= 0; }
+    return has(plainOf(s.title)) || (s.points || []).some(function (p) { return has(plainOf(p)); }) || has(s.notes);
+  }
+  function findNext() {
+    var q = $('findtxt').value; if (!q) return;
+    var d = deck(), n = d.slides.length, found = -1;
+    for (var k = 1; k <= n; k++) { var i = (d.current + k) % n; if (slideHas(d.slides[i], q)) { found = i; break; } }
+    if (found < 0) { $('findmsg').textContent = 'No more matches for "' + q + '".'; return; }
+    d.current = found; render(); queueSave();
+    $('findmsg').textContent = 'Found on slide ' + (found + 1) + '.';
+  }
+  function replaceIn(s, q, rep) {
+    var re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), n = 0;
+    function fix(t) { return String(t || '').replace(re, function () { n++; return rep; }); }
+    function fixRich(t) { return richMap(t, fix); }
+    s.title = fixRich(s.title); s.points = (s.points || []).map(fixRich); s.notes = fix(s.notes);
+    return n;
+  }
+  function replaceOne() {
+    var q = $('findtxt').value, rep = $('repltxt').value; if (!q) return;
+    var s = slide();
+    if (slideHas(s, q)) { replaceIn(s, q, rep); render(); queueSave(); }
+    findNext();
+  }
+  function replaceAll() {
+    var q = $('findtxt').value, rep = $('repltxt').value; if (!q) return;
+    var n = 0;
+    deck().slides.forEach(function (s) { if (!s.layout) n += replaceIn(s, q, rep); });
+    render(); queueSave();
+    $('findmsg').textContent = 'Replaced ' + n + (n === 1 ? ' occurrence.' : ' occurrences.');
+  }
+
+  /* ---------- Dialogs ---------- */
+  function openAbout() { closePop(); $('aboutdialog').showModal(); }
+  function openKeys() { closePop(); $('keysdialog').showModal(); }
+
+  /* ---------- Menu bar ---------- */
+  var pop = null, openBtn = null;
+  function closePop() {
+    if (pop) pop.remove();
+    pop = null;
+    if (openBtn) openBtn.setAttribute('aria-expanded', 'false');
+    openBtn = null;
+  }
+  function itemDisabled(it) {
+    if (it.id) { var t = $(it.id); return !t || t.disabled; }
+    if (it.need) return !hasDeck();
+    return false;
+  }
+  function menus() {
+    var d = hasDeck() ? deck() : null;
+    var decks = hasDeck() ? state.decks.map(function (x) {
+      return { label: x.title || 'Untitled', need: true, check: x.id === state.activeId, act: function () { state.activeId = x.id; render(); queueSave(); } };
+    }) : [];
+    return [
+      { name: 'File', items: [
+        { label: 'New Presentation', id: 'newdeck' },
+        { label: 'Open…', id: 'opendeck', key: 'Ctrl+O' },
+        { label: 'Save', id: 'savedeck', key: 'Ctrl+S' },
+        { label: 'Open from Google Drive…', id: 'opendrive' },
+        { label: 'Save to Google Drive', id: 'savedrive' }, { label: 'Email all open decks…', id: 'emailall' },
+        { label: 'Save As… (Tabbed Slides .json)', need: true, act: function () { saveDeck('json', true); } },
+        { label: 'Save as PowerPoint (.pptx)…', id: 'savepptx' },
+        { sep: true },
+        { label: 'Export HTML…', id: 'exporthtml' },
+        { label: 'Print…', id: 'printdeck' },
+        { sep: true },
+        { label: 'Close Presentation', need: true, act: function () { if (d) closeDeck(d.id); } },
+        { label: 'Discard All Decks', id: 'discardall' }
+      ] },
+      { name: 'Edit', items: [
+        { label: 'Duplicate Slide', id: 'dupslide' },
+        { label: 'Delete Slide', id: 'delslide' },
+        { sep: true },
+        { label: 'Find and Replace…', need: true, key: 'Ctrl+F', act: openFind }
+      ] },
+      { name: 'View', items: [
+        { label: 'Normal', need: true, act: function () { setView('normal'); }, check: function () { return view === 'normal'; } },
+        { label: 'Slide Sorter', need: true, act: function () { setView('sorter'); }, check: function () { return view === 'sorter'; } },
+        { label: 'Slide Show', id: 'presentbtn' },
+        { sep: true },
+        { label: 'Task Pane', need: true, act: togglePane, check: function () { return paneOpen; } },
+        { label: 'Notes Pane', need: true, act: toggleNotes, check: function () { return notesShown; } },
+        { label: 'Slides', need: true, act: function () { setLP('slides'); }, check: function () { return lpNow === 'slides'; } },
+        { label: 'Outline', need: true, act: function () { setLP('outline'); }, check: function () { return lpNow === 'outline'; } }, { label: 'Folders', act: function () { setLP('folders'); }, check: function () { return lpNow === 'folders'; } },
+        { sep: true }
+      ].concat(ZOOMS.map(function (z) { return { label: 'Zoom ' + z + '%', need: true, act: function () { setZoom(z); }, check: function () { return zoomNow === z; } }; }))
+        .concat([{ sep: true }, { label: 'Full Screen', act: toggleFS, check: function () { return !!document.fullscreenElement; } }]) },
+      { name: 'Insert', items: [
+        { label: 'New Slide', id: 'addslide' }, { label: 'Comment…', need: true, act: showComments },
+        { sep: true },
+        { label: 'Picture…', id: 'addpic' },
+        { label: 'Video File…', id: 'addvideo' },
+        { label: 'YouTube Video…', id: 'addyt' },
+        { label: 'Remove Picture', id: 'delpic' },
+        { label: 'Remove Video', id: 'delvideo' },
+        { sep: true },
+        { label: 'Rectangle', need: true, act: function () { addShape('rect'); } },
+        { label: 'Ellipse', need: true, act: function () { addShape('ellipse'); } },
+        { label: 'Line', need: true, act: function () { addShape('line'); } },
+        { label: 'Arrow', need: true, act: function () { addShape('arrow'); } },
+        { label: 'Delete Shape', need: true, act: function () { deleteShape(); } },
+        { sep: true }
+      ].concat(optionItems('chartkind', 'Chart')) },
+      { name: 'Format', items: [
+        { label: 'Slide Layout…', need: true, act: function () { showPane('layout'); } },
+        { label: 'Slide Design…', need: true, act: function () { showPane('design'); } },
+        { label: 'Animate Points (fade in on click)', need: true, check: function () { return !!slide().anim; }, act: function () { var s = slide(); s.anim = !s.anim; queueSave(); } },
+        { label: 'Design Ideas…', need: true, act: function () { showPane('ideas'); } },
+        { sep: true }
+      ].concat(optionItems('theme', 'Theme')) },
+      { name: 'Tools', items: [
+        { label: 'Spelling Checker', id: 'spellon', check: 'spellon' },
+        { label: 'Find and Replace…', need: true, act: openFind },
+        { sep: true },
+        { label: 'Keyboard Shortcuts…', act: openKeys }
+      ] },
+      { name: 'Slide Show', items: [
+        { label: 'View Show', need: true, act: function () { showPresent(); } },
+        { label: 'View Show, Full Slide', need: true, act: function () { showPresent(); if (!fullSlide) toggleFull(); } }
+      ] },
+      { name: 'Window', items: decks.concat(decks.length ? [{ sep: true }] : [])
+        .concat([{ label: 'Previous Deck', need: true, act: function () { cycleDeck(-1); } }, { label: 'Next Deck', need: true, act: function () { cycleDeck(1); } }]) },
+      { name: 'Help', items: [
+        { label: 'Keyboard Shortcuts…', act: openKeys },
+        { sep: true },
+        { label: 'About Tabbed Slides', act: openAbout }
+      ] }
+    ];
+  }
+  function cycleDeck(step) {
+    if (!hasDeck()) return;
+    var i = state.decks.findIndex(function (x) { return x.id === state.activeId; });
+    state.activeId = state.decks[(i + step + state.decks.length) % state.decks.length].id;
+    render(); queueSave();
+  }
+  function openMenu(btn, menuDef) {
+    if (openBtn === btn) { closePop(); return; }
+    closePop();
+    var menu = menuDef();
+    openBtn = btn;
+    btn.setAttribute('aria-expanded', 'true');
+    pop = document.createElement('div');
+    pop.id = 'officemenu-pop';
+    pop.setAttribute('role', 'menu');
+    pop.addEventListener('mousedown', function (e) { e.preventDefault(); });
+    menu.items.forEach(function (it) {
+      if (it.sep) { pop.appendChild(document.createElement('hr')); return; }
+      var b = document.createElement('button');
+      b.type = 'button'; b.setAttribute('role', 'menuitem');
+      var l = document.createElement('span'); l.textContent = it.label; b.appendChild(l);
+      if (it.key) { var k = document.createElement('span'); k.className = 'k'; k.textContent = it.key; b.appendChild(k); }
+      b.disabled = itemDisabled(it);
+      var checked = typeof it.check === 'function' ? it.check() : (it.check === true ? true : (typeof it.check === 'string' ? isOn(it.check) : false));
+      if (checked) b.className = 'checked';
+      b.addEventListener('click', function () { closePop(); if (it.act) it.act(); else fire(it.id); });
+      pop.appendChild(b);
+    });
+    document.body.appendChild(pop);
+    var r = btn.getBoundingClientRect();
+    pop.style.left = Math.round(r.left) + 'px';
+    pop.style.top = Math.round(r.bottom) + 'px';
+    var pr = pop.getBoundingClientRect();
+    if (pr.right > window.innerWidth - 4) pop.style.left = Math.max(4, window.innerWidth - pr.width - 4) + 'px';
+  }
+  function buildMenuBar() {
+    var bar = $('officemenu');
+    bar.replaceChildren();
+    var names = ['File', 'Edit', 'View', 'Insert', 'Format', 'Tools', 'Slide Show', 'Window', 'Help'];
+    names.forEach(function (name) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.textContent = name;
+      b.setAttribute('aria-haspopup', 'menu'); b.setAttribute('aria-expanded', 'false');
+      b.addEventListener('click', function () { openMenu(b, function () { return menus().filter(function (m) { return m.name === name; })[0]; }); });
+      b.addEventListener('mouseenter', function () { if (openBtn && openBtn !== b) openMenu(b, function () { return menus().filter(function (m) { return m.name === name; })[0]; }); });
+      bar.append(b);
+    });
+  }
+  document.addEventListener('mousedown', function (e) {
+    if (pop && !pop.contains(e.target) && !$('officemenu').contains(e.target)) closePop();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closePop();
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'f' || e.key === 'F') && hasDeck() && !$('present').classList.contains('on')) { e.preventDefault(); openFind(); }
+  });
+  window.addEventListener('resize', closePop);
+
+  /* ---------- Standard and Formatting toolbars ---------- */
+  function svgFrom(id) { var s = $(id), v = s && s.querySelector('svg'); return v ? v.outerHTML : ''; }
+  function tbButton(box, o) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.title = o.title; b.setAttribute('aria-label', o.title);
+    b.innerHTML = (o.svg || '') + (o.label ? '<span>' + o.label + '</span>' : '');
+    b.onclick = function () { closePop(); if (o.act) o.act(); else fire(o.id); };
+    box.append(b);
+    return { el: b, o: o };
+  }
+  function buildToolbars() {
+    var std = $('stdbar'), fmt = $('fmtbar');
+    var sep = function (box) { var s = document.createElement('span'); s.className = 'sep'; box.append(s); };
+    [
+      { id: 'newdeck', title: 'New presentation', svg: SVG.newf }, { id: 'opendeck', title: 'Open (Ctrl+O)', svg: SVG.open }, { id: 'opendrive', title: 'Open from Google Drive', svg: SVG.opendrive }, { id: 'savedrive', title: 'Save to Google Drive', svg: SVG.savedrive }, { id: 'emailall', title: 'Email all open decks (Drive, then Gmail)', svg: SVG.emailall }, { id: 'savedeck', title: 'Save (Ctrl+S)', svg: SVG.save }, { id: 'printdeck', title: 'Print' }
+    ].forEach(function (o) { toolButtons.push(tbButton(std, { id: o.id, title: o.title, svg: o.svg || svgFrom(o.id) })); });
+    sep(std);
+    toolButtons.push(tbButton(std, { id: 'spellon', title: 'Spelling checker', svg: SVG.spell, toggle: true, act: function () { fire('spellon'); } }));
+    toolButtons.push(tbButton(std, { title: 'Find and Replace (Ctrl+F)', svg: SVG.findreplace, act: openFind, need: true }));
+    sep(std);
+    [
+      { id: 'dupslide', title: 'Duplicate slide' }, { id: 'addslide', title: 'New slide' }, { id: 'addpic', title: 'Insert picture' }, { id: 'addvideo', title: 'Insert video file' }
+    ].forEach(function (o) { toolButtons.push(tbButton(std, { id: o.id, title: o.title, svg: o.svg || svgFrom(o.id) })); });
+    sep(std);
+    toolButtons.push(tbButton(std, { id: 'presentbtn', title: 'Slide Show', svg: SVG.show }));
+    sep(std);
+    var zl = document.createElement('select');
+    zl.id = 'zoomsel'; zl.setAttribute('aria-label', 'Zoom');
+    ZOOMS.forEach(function (z) { var o = document.createElement('option'); o.value = String(z); o.textContent = z + '%'; zl.append(o); });
+    zl.onchange = function () { setZoom(Number(zl.value)); };
+    std.append(zl);
+    sep(std);
+    toolButtons.push(tbButton(std, { title: 'Help', svg: SVG.help, act: openAbout }));
+    [
+      { label: 'Slide Layout', svg: SVG.layout, title: 'Slide Layout', act: function () { showPane('layout'); }, need: true },
+      { label: 'Slide Design', svg: SVG.design, title: 'Slide Design', act: function () { showPane('design'); }, need: true },
+      { label: 'Design Ideas', svg: SVG.ideas, title: 'Design Ideas for the picture on this slide', act: function () { showPane('ideas'); }, need: true }
+    ].forEach(function (o) { toolButtons.push(tbButton(fmt, o)); });
+    sep(fmt);
+    toolButtons.push(tbButton(fmt, { label: 'Notes', svg: SVG.notes, title: 'Show or hide the notes', act: toggleNotes, need: true, pressed: function () { return notesShown; } }));
+    addFmtButtons(fmt);
+    addShapeButtons(fmt);
+  }
+  function syncToolbars() {
+    toolButtons.forEach(function (t) {
+      var o = t.o;
+      if (o.id) { var src = $(o.id); t.el.disabled = !src || src.disabled; }
+      else if (o.need) t.el.disabled = !hasDeck();
+      if (o.toggle) t.el.setAttribute('aria-pressed', String(isOn(o.id)));
+      else if (o.pressed) t.el.setAttribute('aria-pressed', String(!!o.pressed()));
+    });
+    if ($('zoomsel')) $('zoomsel').disabled = !hasDeck();
+  }
+
+  /* ---------- Thumbnails of the slide list, theme of the design pane ---------- */
+  $('lpSlides').onclick = function () { setLP('slides'); };
+  $('lpOutline').onclick = function () { setLP('outline'); };
+  $('tpSel').onchange = function () { showPane($('tpSel').value); };
+  $('tpClose').onclick = togglePane;
+  $('replone').onclick = replaceOne;
+  $('replall').onclick = replaceAll;
+  $('findclose').onclick = function () { $('finddlg').close(); };
+  $('findform').onsubmit = function (e) { e.preventDefault(); findNext(); };
+  (function fillAbout() {
+    var src = document.querySelector('.rsec-about'), box = $('aboutbody');
+    if (src && box) { var c = src.cloneNode(true); c.removeAttribute('hidden'); box.replaceChildren(c); }
+  })();
+  buildMenuBar();
+  buildToolbars();
+  setInterval(syncToolbars, 300);
+  syncToolbars();
+  setLP('slides');
+  setView('normal');
+  setZoom(100);
+
+  /* ---------- 2026.11.9: Comments on slides (kept in the deck; PowerPoint files do not carry them) ---------- */
+  function renderComments() {
+    var ul = $('cmlist'); if (!ul || !hasDeck()) return;
+    ul.replaceChildren();
+    var s = slide(), list = (deck().comments || []).filter(function (c) { return c.slide === s.id; });
+    if (!list.length) {
+      var none = document.createElement('li'); none.className = 'help'; none.textContent = 'No comments on this slide yet.'; ul.append(none);
+    }
+    list.forEach(function (c) {
+      var li = document.createElement('li'); li.className = 'cm-item';
+      var meta = document.createElement('div'); meta.className = 'cm-meta';
+      meta.textContent = new Date(c.at).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' });
+      var body = document.createElement('div'); body.textContent = c.text;
+      var del = document.createElement('button'); del.type = 'button'; del.textContent = 'Delete';
+      del.onclick = function () {
+        var d = deck(); d.comments = (d.comments || []).filter(function (x) { return x.id !== c.id; });
+        renderComments(); queueSave(); setStatus('Comment deleted', false);
+      };
+      li.append(meta, body, del); ul.append(li);
+    });
+  }
+  function addComment() {
+    if (!hasDeck()) return;
+    var t = $('cmtext').value.trim();
+    if (!t) { setStatus('Write the comment first', true); return; }
+    var d = deck(); d.comments = d.comments || [];
+    d.comments.push({ id: uid(), slide: slide().id, text: t, at: Date.now() });
+    $('cmtext').value = ''; renderComments(); queueSave(); setStatus('Comment added', false);
+  }
+  function showComments() { if (!hasDeck()) return; closePop(); showPane('comments'); $('cmtext').focus(); }
+  $('cmadd').onclick = addComment;
+
+  /* ---------- 2026.11.9: Folders (left pane): the .pptx and .json decks in a folder ---------- */
+  var FOLDER_EXT = /\.(pptx|json)$/i;
+  var folder = null, folderItems = [], dirField = null;
+  var fsSupported = typeof window.showDirectoryPicker === 'function';
+  function fdb(mode, fn) {
+    return new Promise(function (res, rej) {
+      var r = indexedDB.open('tabbed-slides-folder', 1);
+      r.onupgradeneeded = function () { r.result.createObjectStore('kv'); };
+      r.onerror = function () { rej(r.error); };
+      r.onsuccess = function () {
+        var db = r.result, t = db.transaction('kv', mode), q = fn(t.objectStore('kv'));
+        t.oncomplete = function () { res(q.result); };
+        t.onerror = function () { rej(t.error); };
+      };
+    });
+  }
+  function flNote(t) { $('flnote').textContent = t || ''; }
+  function flRender() {
+    var ul = $('fllist'); ul.replaceChildren();
+    var list = folderItems.slice(), sort = $('flsort').value;
+    if (sort === 'name') list.sort(function (a, b) { return a.name.localeCompare(b.name, undefined, { numeric: true }); });
+    else if (sort === 'newest') list.sort(function (a, b) { return b.modified - a.modified; });
+    else list.sort(function (a, b) { return a.modified - b.modified; });
+    var cur = hasDeck() ? deck() : null, active = cur ? cur.fileName : '';
+    flNote(list.length ? '' : 'No PowerPoint (.pptx) or Tabbed Slides (.json) files in this folder.');
+    list.forEach(function (item) {
+      var li = document.createElement('li'), b = document.createElement('button');
+      b.type = 'button'; b.textContent = item.name;
+      b.title = item.name + ' · ' + new Date(item.modified).toLocaleDateString();
+      if (item.name === active) b.setAttribute('aria-current', 'true');
+      b.onclick = function () { openFolderItem(item); };
+      li.append(b); ul.append(li);
+    });
+  }
+  async function flList() {
+    folderItems = [];
+    for await (const handle of folder.values()) {
+      if (handle.kind !== 'file' || !FOLDER_EXT.test(handle.name)) continue;
+      var file = await handle.getFile();
+      folderItems.push({ name: handle.name, handle: handle, modified: file.lastModified });
+    }
+    $('flallow').hidden = true;
+    flRender();
+  }
+  async function flUse(handle) {
+    folder = handle;
+    $('flname').textContent = handle.name;
+    $('flchoose').textContent = 'Change folder';
+    try {
+      var perm = await handle.queryPermission({ mode: 'readwrite' });
+      if (perm !== 'granted') { flNeedAllow(); return; }
+      await flList();
+    } catch (e) { flNeedAllow(); }
+  }
+  function flNeedAllow() {
+    folderItems = []; flRender();
+    $('flallow').hidden = false;
+    flNote('Allow the browser to read this folder again.');
+  }
+  /* Browsers without the folder picker (Brave, Safari, Firefox): a read-only folder through a directory input */
+  function dirInput() {
+    if (dirField) return dirField;
+    dirField = document.createElement('input');
+    dirField.type = 'file'; dirField.multiple = true; dirField.hidden = true;
+    dirField.setAttribute('webkitdirectory', '');
+    dirField.addEventListener('change', function () {
+      var all = Array.prototype.slice.call(dirField.files || []);
+      dirField.value = '';
+      var rel = all.length && all[0].webkitRelativePath ? all[0].webkitRelativePath.split('/')[0] : 'Folder';
+      folder = null;
+      $('flname').textContent = rel; $('flchoose').textContent = 'Change folder'; $('flallow').hidden = true;
+      folderItems = all.filter(function (f) {
+        var path = f.webkitRelativePath || f.name;
+        return FOLDER_EXT.test(f.name) && path.indexOf('/.') < 0;
+      }).map(function (f) { return { name: f.name, file: f, handle: null, modified: f.lastModified }; });
+      flRender();
+    });
+    document.body.appendChild(dirField);
+    return dirField;
+  }
+  async function flChoose() {
+    if (!fsSupported) { dirInput().click(); return; }
+    try {
+      var h = await window.showDirectoryPicker({ mode: 'readwrite' });
+      try { await fdb('readwrite', function (s) { return s.put(h, 'folder'); }); } catch (e) {}
+      await flUse(h);
+    } catch (e) {
+      if (!e || e.name !== 'AbortError') setStatus('The folder could not be opened.', true);
+    }
+  }
+  function openFolderItem(item) {
+    Promise.resolve(item.file || item.handle.getFile()).then(function (file) {
+      openFile(file, item.handle || null, null, function () { flRender(); });
+    }).catch(function (e) { setStatus('Could not open the file: ' + ((e && e.message) || 'unknown error'), true); });
+  }
+  $('lpFolders').onclick = function () { setLP('folders'); };
+  $('flchoose').onclick = flChoose;
+  $('flsort').onchange = flRender;
+  $('flallow').onclick = async function () {
+    try {
+      var perm = await folder.requestPermission({ mode: 'readwrite' });
+      if (perm === 'granted') await flList(); else setStatus('Access to the folder was not allowed.', true);
+    } catch (e) { setStatus('Access to the folder was not allowed.', true); }
+  };
+  (async function () {
+    if (!fsSupported) { flNote('Choose a folder to see its files here. In this browser the folder is read-only.'); return; }
+    try {
+      var h = await fdb('readonly', function (s) { return s.get('folder'); });
+      if (h) { await flUse(h); return; }
+    } catch (e) {}
+    flNote('Choose a folder to see its PowerPoint and Tabbed Slides files here.');
+  })();
+
+  applyPaneVisibility();
+  if (window.TabbedDrive) TabbedDrive.attach({
+    decks: function () { return state.decks; },
+    active: function () { return hasDeck() ? deck() : null; },
+    formatOf: function (d) { return d.format || 'json'; },
+    fileName: function (d, fmt) { return fileName(d, fmt); },
+    blob: function (d, fmt) { return deckBlob(d, fmt); },
+    openFile: function (f, after) { openFile(f, null, null, after); },
+    save: function () { writeStore(); },
+    status: function (t, isError) { setStatus(t, !!isError); }
+  });
+
 })();
 </script>
 <script id="notes-size-v201">
@@ -2249,5 +4024,7 @@ body.no-deck main{display:none}
   }).observe(t);
 })();
 </script>
+
+
 </body>
 </html>

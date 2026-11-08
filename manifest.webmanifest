@@ -6,10 +6,29 @@
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f5ebe3",
-  "theme_color": "#9a3412",
+  "background_color": "#D4D0C8",
+  "theme_color": "#0A246A",
   "icons": [
-    { "src": "icons/tabbed-slides-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icons/tabbed-slides-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    {
+      "src": "icons/tabbed-slides-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/tabbed-slides-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "file_handlers": [
+    {
+      "action": "./",
+      "accept": {
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation": [
+          ".pptx"
+        ]
+      }
+    }
   ]
 }

@@ -16,11 +16,21 @@ files are never uploaded.
 - Present mode reveals points one by one, with speaker notes
 - Exports HTML, PowerPoint and PDF (through Print)
 - Spelling check in English, Greek and Turkish
+- Google Drive: Open from Google Drive and Save to Google Drive (Drive buttons and File menu). A linked deck uploads to Drive automatically after you pause; files are sent straight to Google, not through any server of ours
+- Folders (left pane): choose a folder and open its .pptx and .json decks; Save writes back to the file in Chrome and Edge
+- Comments (task pane, or Insert > Comment): notes on a slide, kept in the Tabbed Slides file and in Drive
+- Email all: saves every open deck to Google Drive as .pptx, then opens Gmail to attach them
 - Works offline after the first visit online
+
+Version 2026.11.9: the Tabbed Word look (flat Office 2003 palette, toolbar and File menu with the same icons), Google Drive, Email all, Folders and Comments.
 
 ## Running it
 
 Serve the folder with any static web server, or open `index.html` in a supported browser.
+
+## Google Drive
+
+The Google sign-in window opens when you press a Drive button. The app asks for access to your Drive files (not sharing). Tokens stay in memory and are never saved. Add this site's address to the OAuth client's authorised JavaScript origins in Google Cloud before Drive sign-in can work from a new domain.
 
 ## Licence
 
