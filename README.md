@@ -22,6 +22,18 @@ files are never uploaded.
 - Email all: saves every open deck to Google Drive as .pptx, then opens Gmail to attach them
 - Works offline after the first visit online
 
+Version 2026.11.17: Duck.ai is removed from Tabbed Slides; it stays in Tabbed Word.
+
+Version 2026.11.16: Find and replace uses the Tabbed Word look. Duck.ai answers no longer stay on “working”.
+
+Version 2026.11.15: Duck.ai asks you to install or update the Tabbed Duck.ai Bridge and reload the page when it does not answer.
+
+Version 2026.11.14: The canvas, status bar and side panel use Tabbed Word's colours.
+
+Version 2026.11.13: Blue accent, deck tabs and side panel as in Tabbed Word. Duck.ai needs the Tabbed Duck.ai Bridge extension version 2.0.0, which works for both Tabbed Word and Tabbed Slides; the old extension must be removed first.
+
+Version 2026.11.12: The PowerPoint-style look: title bar with Undo, Redo, New, Open, Open from Google Drive, Save to Google Drive, Save, Close without saving, Discard all and Email; a ribbon with Home, Insert, Design, Slide Show, Review and View tabs (the ribbon collapses when you click the open tab, and a double-click shows or hides it); a left shoulder with icon tabs for slides, outline, folders, Duck.ai and Find; Duck.ai asks a question in the shoulder and the answer can become the slide's speaker notes (needs the Duck.ai bridge extension, see below); undo and redo for changes to decks; a blank presentation opens at every start when none is open; a new icon.
+
 Version 2026.11.11: Google Drive uses the narrower `drive.file` access: the app sees only files it created and files you pick in Google's file picker. Open from Google Drive opens that picker, sized to fit the window (also in Safari). The site now sends only its own address to other sites (`strict-origin-when-cross-origin`), which the picker's website-restricted key needs.
 
 Version 2026.11.9: the Tabbed Word look (flat Office 2003 palette, toolbar and File menu with the same icons), Google Drive, Email all, Folders and Comments.
